@@ -41,17 +41,28 @@ const els = {
   cutsList: document.getElementById("cutsList"),
   resultsSummaryText: document.getElementById("resultsSummaryText"),
 
+  finalSo: document.getElementById("finalSo"),
+  finalOperator: document.getElementById("finalOperator"),
+  finalPart: document.getElementById("finalPart"),
+  finalTracking: document.getElementById("finalTracking"),
+  finalTotalLength: document.getElementById("finalTotalLength"),
+  finalCutCount: document.getElementById("finalCutCount"),
+  finalCutLength: document.getElementById("finalCutLength"),
+  finalDirection: document.getElementById("finalDirection"),
+  finalCutsCompactList: document.getElementById("finalCutsCompactList"),
+
   page1: document.getElementById("page1"),
   page2: document.getElementById("page2"),
   page3: document.getElementById("page3"),
   page4: document.getElementById("page4"),
+  page5: document.getElementById("page5"),
 
   stepDot1: document.getElementById("stepDot1"),
   stepDot2: document.getElementById("stepDot2"),
   stepDot3: document.getElementById("stepDot3"),
   stepDot4: document.getElementById("stepDot4"),
+  stepDot5: document.getElementById("stepDot5"),
 
-  p1SaveBtn: document.getElementById("p1SaveBtn"),
   p1NextBtn: document.getElementById("p1NextBtn"),
   p2BackBtn: document.getElementById("p2BackBtn"),
   p2NextBtn: document.getElementById("p2NextBtn"),
@@ -60,6 +71,8 @@ const els = {
   p4BackBtn: document.getElementById("p4BackBtn"),
   regenerateBtn: document.getElementById("regenerateBtn"),
   markAllDoneBtn: document.getElementById("markAllDoneBtn"),
+  p5BackBtn: document.getElementById("p5BackBtn"),
+  startNewJobBtn: document.getElementById("startNewJobBtn"),
   clearAllBtn: document.getElementById("clearAllBtn")
 };
 
@@ -176,7 +189,7 @@ function updateLivePreviews() {
 function showPage(pageNumber) {
   state.currentPage = pageNumber;
 
-  [1, 2, 3, 4].forEach(n => {
+  [1, 2, 3, 4, 5].forEach(n => {
     els[`page${n}`].classList.toggle("active", n === pageNumber);
     els[`stepDot${n}`].classList.toggle("active", n === pageNumber);
   });
@@ -248,7 +261,7 @@ function validatePage3() {
   }
 
   if (!Number.isFinite(e) || e < 0 || e > 0.9) {
-    alert("Offset must be between 0.0 and 0.9.");
+    alert("Please select a valid offset value.");
     return false;
   }
 
@@ -370,6 +383,50 @@ function renderResults() {
   updateSummaryHeader();
 }
 
+function renderFinalSummary() {
+  els.finalSo.textContent = state.job.soNumber || "-";
+  els.finalOperator.textContent = state.job.operatorName || "-";
+  els.finalPart.textContent = state.job.partNumber || "-";
+  els.finalTracking.textContent = state.job.trackingNumber || "-";
+  els.finalTotalLength.textContent = state.job.totalLength ? `${state.job.totalLength} m` : "-";
+  els.finalCutCount.textContent = state.job.numberOfCuts || "-";
+  els.finalCutLength.textContent = state.job.cutLength ? `${state.job.cutLength} m` : "-";
+  els.finalDirection.textContent = capitalize(state.job.direction || "-");
+
+  const cuts = state.job.cuts || [];
+
+  if (!cuts.length) {
+    els.finalCutsCompactList.innerHTML = `<p class="empty-text">No completed cuts yet.</p>`;
+    return;
+  }
+
+  els.finalCutsCompactList.innerHTML = cuts
+    .map(cut => `
+      <div class="compact-cut-row">
+        <div class="compact-cut-main">
+          <strong>Cut ${cut.cutNo}</strong>
+          <span>${escapeHtml(cut.reading)} m</span>
+        </div>
+        <div class="compact-cut-meta">
+          ${cut.lowerMark}-${cut.upperMark} m | L:${escapeHtml(cut.fromLower)} | U:${escapeHtml(cut.fromUpper)}
+        </div>
+      </div>
+    `)
+    .join("");
+}
+
+function allCutsDone() {
+  const cuts = state.job.cuts || [];
+  return cuts.length > 0 && cuts.every(cut => cut.done);
+}
+
+function goToFinalSummaryIfComplete() {
+  if (allCutsDone()) {
+    renderFinalSummary();
+    showPage(5);
+  }
+}
+
 function toggleDone(cutNo) {
   const cut = state.job.cuts.find(item => item.cutNo === cutNo);
   if (!cut) return;
@@ -377,6 +434,7 @@ function toggleDone(cutNo) {
   cut.done = !cut.done;
   saveState();
   renderResults();
+  goToFinalSummaryIfComplete();
 }
 
 window.toggleDone = toggleDone;
@@ -394,12 +452,10 @@ function markAllDone() {
 
   saveState();
   renderResults();
+  goToFinalSummaryIfComplete();
 }
 
-function clearAll() {
-  const ok = confirm("Clear the whole job and all generated cuts?");
-  if (!ok) return;
-
+function resetWholeJob() {
   state.currentPage = 1;
   state.job = {
     soNumber: "",
@@ -422,6 +478,12 @@ function clearAll() {
   updateLivePreviews();
   renderResults();
   showPage(1);
+}
+
+function clearAll() {
+  const ok = confirm("Clear the whole job and all generated cuts?");
+  if (!ok) return;
+  resetWholeJob();
 }
 
 function escapeHtml(value) {
@@ -449,6 +511,7 @@ function attachLiveInputHandlers() {
     els.offsetValue
   ].forEach(input => {
     input.addEventListener("input", updateLivePreviews);
+    input.addEventListener("change", updateLivePreviews);
   });
 
   document.querySelectorAll('input[name="direction"]').forEach(radio => {
@@ -457,11 +520,6 @@ function attachLiveInputHandlers() {
 }
 
 function attachButtonHandlers() {
-  els.p1SaveBtn.addEventListener("click", () => {
-    if (!validatePage1()) return;
-    alert("Page 1 saved.");
-  });
-
   els.p1NextBtn.addEventListener("click", () => {
     if (!validatePage1()) return;
     showPage(2);
@@ -494,6 +552,15 @@ function attachButtonHandlers() {
   });
 
   els.markAllDoneBtn.addEventListener("click", markAllDone);
+
+  els.p5BackBtn.addEventListener("click", () => showPage(4));
+
+  els.startNewJobBtn.addEventListener("click", () => {
+    const ok = confirm("Start a new job?");
+    if (!ok) return;
+    resetWholeJob();
+  });
+
   els.clearAllBtn.addEventListener("click", clearAll);
 }
 
@@ -503,9 +570,15 @@ function init() {
   updateSummaryHeader();
   updateLivePreviews();
   renderResults();
+  renderFinalSummary();
   attachLiveInputHandlers();
   attachButtonHandlers();
-  showPage(state.currentPage || 1);
+
+  if (state.currentPage === 5 && !allCutsDone()) {
+    showPage(4);
+  } else {
+    showPage(state.currentPage || 1);
+  }
 }
 
 init();
