@@ -314,6 +314,7 @@ function buildCuts() {
 
 function renderResults() {
   const cuts = state.job.cuts || [];
+  const nextPendingCutNo = getNextPendingCutNo();
 
   els.resCutLength.textContent = state.job.cutLength ? `${state.job.cutLength} m` : "-";
 
@@ -335,12 +336,13 @@ function renderResults() {
     .map(cut => {
       const statusClass = cut.done ? "done" : "pending";
       const statusText = cut.done ? "DONE" : "PENDING";
+      const isNextPending = cut.cutNo === nextPendingCutNo && !cut.done;
 
       return `
-        <div class="compact-cut-card ${cut.done ? "done" : ""}" id="cut-card-${cut.cutNo}">
+        <div class="compact-cut-card ${cut.done ? "done" : ""} ${isNextPending ? "next-pending" : ""}" id="cut-card-${cut.cutNo}">
           <div class="compact-cut-line1">
             <div class="compact-cut-left">
-              <span class="compact-cut-no">Cut ${cut.cutNo}</span>
+              <span class="compact-cut-no">Cut ${cut.cutNo}${isNextPending ? " • NEXT" : ""}</span>
               <span class="compact-cut-reading">${escapeHtml(cut.reading)} m</span>
             </div>
             <span class="badge ${statusClass}">${statusText}</span>
