@@ -29,11 +29,8 @@ const els = {
   offsetValue: document.getElementById("offsetValue"),
 
   sumSo: document.getElementById("sumSo"),
-  sumOperator: document.getElementById("sumOperator"),
-  sumPart: document.getElementById("sumPart"),
-  sumTracking: document.getElementById("sumTracking"),
-  sumTotalLength: document.getElementById("sumTotalLength"),
-  sumCuts: document.getElementById("sumCuts"),
+  sumDoneHeader: document.getElementById("sumDoneHeader"),
+  sumRemainingHeader: document.getElementById("sumRemainingHeader"),
 
   cutLengthPreview: document.getElementById("cutLengthPreview"),
   startReadingPreview: document.getElementById("startReadingPreview"),
@@ -121,11 +118,13 @@ function syncStateFromInputs() {
 
 function updateSummaryHeader() {
   els.sumSo.textContent = state.job.soNumber || "-";
-  els.sumOperator.textContent = state.job.operatorName || "-";
-  els.sumPart.textContent = state.job.partNumber || "-";
-  els.sumTracking.textContent = state.job.trackingNumber || "-";
-  els.sumTotalLength.textContent = state.job.totalLength ? `${state.job.totalLength} m` : "-";
-  els.sumCuts.textContent = state.job.numberOfCuts || "-";
+
+  const cuts = state.job.cuts || [];
+  const doneCount = cuts.filter(cut => cut.done).length;
+  const remainingCount = cuts.length - doneCount;
+
+  els.sumDoneHeader.textContent = doneCount;
+  els.sumRemainingHeader.textContent = remainingCount;
 }
 
 function formatOneDecimal(num) {
@@ -297,6 +296,7 @@ function buildCuts() {
   state.job.cuts = cuts;
 
   saveState();
+  updateSummaryHeader();
 }
 
 function renderResults() {
@@ -311,6 +311,7 @@ function renderResults() {
   if (!cuts.length) {
     els.resultsSummaryText.textContent = "No cuts generated yet.";
     els.cutsList.innerHTML = `<p class="empty-text">No cuts generated yet.</p>`;
+    updateSummaryHeader();
     return;
   }
 
@@ -365,6 +366,8 @@ function renderResults() {
       `;
     })
     .join("");
+
+  updateSummaryHeader();
 }
 
 function toggleDone(cutNo) {
