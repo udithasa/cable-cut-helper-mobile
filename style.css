@@ -455,3 +455,72 @@ select:focus {
     flex-direction: column;
   }
 }
+
+.compact-cut-card {
+  background: var(--card2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.compact-cut-card.done {
+  background: var(--success-bg);
+  border-color: var(--success-line);
+}
+
+.compact-cut-line1 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.compact-cut-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.compact-cut-no {
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.compact-cut-reading {
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.compact-cut-line2 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.compact-cut-actions {
+  display: flex;
+  margin-top: 10px;
+}
+
+.compact-cut-actions button {
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .compact-cut-line1 {
+    align-items: flex-start;
+  }
+
+  .compact-cut-reading {
+    font-size: 1rem;
+  }
+
+  .compact-cut-line2 {
+    font-size: 0.84rem;
+    gap: 6px 10px;
+  }
+}
