@@ -337,7 +337,7 @@ function renderResults() {
       const statusText = cut.done ? "DONE" : "PENDING";
 
       return `
-        <div class="compact-cut-card ${cut.done ? "done" : ""}">
+        <div class="compact-cut-card ${cut.done ? "done" : ""}" id="cut-card-${cut.cutNo}">
           <div class="compact-cut-line1">
             <div class="compact-cut-left">
               <span class="compact-cut-no">Cut ${cut.cutNo}</span>
@@ -364,6 +364,25 @@ function renderResults() {
     .join("");
 
   updateSummaryHeader();
+}
+
+function getNextPendingCutNo() {
+  const nextPending = (state.job.cuts || []).find(cut => !cut.done);
+  return nextPending ? nextPending.cutNo : null;
+}
+
+function scrollToCut(cutNo) {
+  if (!cutNo) return;
+
+  const target = document.getElementById(`cut-card-${cutNo}`);
+  if (!target) return;
+
+  setTimeout(() => {
+    target.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+  }, 120);
 }
 
 function renderFinalSummary() {
@@ -417,7 +436,14 @@ function toggleDone(cutNo) {
   cut.done = !cut.done;
   saveState();
   renderResults();
-  goToFinalSummaryIfComplete();
+
+  if (allCutsDone()) {
+    goToFinalSummaryIfComplete();
+    return;
+  }
+
+  const nextPendingCutNo = getNextPendingCutNo();
+  scrollToCut(nextPendingCutNo);
 }
 
 window.toggleDone = toggleDone;
