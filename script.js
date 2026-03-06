@@ -825,8 +825,44 @@ function createNewJobLineAndContinue() {
 }
 
 function loadExistingJobSimple() {
-  alert("Next step: we will add the job line list here.");
+  const soNumber = state.job.soNumber.trim();
+  const existing = findJobLinesBySo(soNumber);
+
+  if (!existing.length) {
+    alert("No existing job lines found.");
+    return;
+  }
+
+  let message = "Select a job line:\n\n";
+
+  existing.forEach(job => {
+    message += job.jobLineId + "\n";
+  });
+
+  const selected = prompt(message + "\nType the job line ID exactly:");
+
+  if (!selected) return;
+
+  const job = existing.find(j => j.jobLineId === selected.trim());
+
+  if (!job) {
+    alert("Job line not found.");
+    return;
+  }
+
+  state.job = JSON.parse(JSON.stringify(job));
+
+  saveState();
   closeSoChoiceModal();
+  syncInputsFromState();
+  updateSummaryHeader();
+
+  if (state.job.cuts && state.job.cuts.length) {
+    renderResults();
+    showPage(4);
+  } else {
+    showPage(2);
+  }
 }
 
 function handlePage1NextSimple() {
