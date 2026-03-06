@@ -337,42 +337,25 @@ function renderResults() {
       const statusText = cut.done ? "DONE" : "PENDING";
 
       return `
-        <div class="cut-card ${cut.done ? "done" : ""}">
-          <div class="cut-row-top">
-            <div>
-              <div class="cut-title">Cut ${cut.cutNo}</div>
-              <div class="cut-main-reading">${escapeHtml(cut.reading)} m</div>
+        <div class="compact-cut-card ${cut.done ? "done" : ""}">
+          <div class="compact-cut-line1">
+            <div class="compact-cut-left">
+              <span class="compact-cut-no">Cut ${cut.cutNo}</span>
+              <span class="compact-cut-reading">${escapeHtml(cut.reading)} m</span>
             </div>
             <span class="badge ${statusClass}">${statusText}</span>
           </div>
 
-          <div class="cut-grid">
-            <div class="cut-box">
-              <span class="small-label">Between full marks</span>
-              <strong>${cut.lowerMark} m and ${cut.upperMark} m</strong>
-            </div>
-            <div class="cut-box">
-              <span class="small-label">Cut length</span>
-              <strong>${escapeHtml(state.job.cutLength)} m</strong>
-            </div>
-            <div class="cut-box">
-              <span class="small-label">From lower mark</span>
-              <strong>${escapeHtml(cut.fromLower)} m from ${cut.lowerMark}</strong>
-            </div>
-            <div class="cut-box">
-              <span class="small-label">From upper mark</span>
-              <strong>${escapeHtml(cut.fromUpper)} m from ${cut.upperMark}</strong>
-            </div>
+          <div class="compact-cut-line2">
+            <span>${cut.lowerMark}-${cut.upperMark} m</span>
+            <span>L:${escapeHtml(cut.fromLower)}</span>
+            <span>U:${escapeHtml(cut.fromUpper)}</span>
+            <span>X:${escapeHtml(state.job.cutLength)}</span>
           </div>
 
-          <div class="cut-desc">
-            Reading: ${escapeHtml(cut.reading)} m<br>
-            Display: Between ${cut.lowerMark} m and ${cut.upperMark} m • ${escapeHtml(cut.fromLower)} m from ${cut.lowerMark} • ${escapeHtml(cut.fromUpper)} m from ${cut.upperMark}
-          </div>
-
-          <div class="cut-actions">
+          <div class="compact-cut-actions">
             <button class="btn primary small" onclick="toggleDone(${cut.cutNo})">
-              ${cut.done ? "Undo" : "Mark Done"}
+              ${cut.done ? "Undo" : "Done"}
             </button>
           </div>
         </div>
