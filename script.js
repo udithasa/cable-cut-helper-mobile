@@ -109,14 +109,14 @@ function loadState() {
 }
 
 function syncInputsFromState() {
-  els.soNumber.value = state.job.soNumber || "";
-  els.operatorName.value = state.job.operatorName || "";
-  els.partNumber.value = state.job.partNumber || "";
-  els.trackingNumber.value = state.job.trackingNumber || "";
-  els.totalLength.value = state.job.totalLength || "";
-  els.numberOfCuts.value = state.job.numberOfCuts || "";
-  els.endMeterValue.value = state.job.endMeterValue || "";
-  els.offsetValue.value = state.job.offsetValue || "";
+  if (els.soNumber) els.soNumber.value = state.job.soNumber || "";
+  if (els.operatorName) els.operatorName.value = state.job.operatorName || "";
+  if (els.partNumber) els.partNumber.value = state.job.partNumber || "";
+  if (els.trackingNumber) els.trackingNumber.value = state.job.trackingNumber || "";
+  if (els.totalLength) els.totalLength.value = state.job.totalLength || "";
+  if (els.numberOfCuts) els.numberOfCuts.value = state.job.numberOfCuts || "";
+  if (els.endMeterValue) els.endMeterValue.value = state.job.endMeterValue || "";
+  if (els.offsetValue) els.offsetValue.value = state.job.offsetValue || "";
 
   const radios = document.querySelectorAll('input[name="direction"]');
   radios.forEach(radio => {
@@ -125,28 +125,28 @@ function syncInputsFromState() {
 }
 
 function syncStateFromInputs() {
-  state.job.soNumber = els.soNumber.value.trim();
-  state.job.operatorName = els.operatorName.value.trim();
-  state.job.partNumber = els.partNumber.value.trim();
-  state.job.trackingNumber = els.trackingNumber.value.trim();
-  state.job.totalLength = els.totalLength.value.trim();
-  state.job.numberOfCuts = els.numberOfCuts.value.trim();
-  state.job.endMeterValue = els.endMeterValue.value.trim();
-  state.job.offsetValue = els.offsetValue.value.trim();
+  state.job.soNumber = els.soNumber ? els.soNumber.value.trim() : "";
+  state.job.operatorName = els.operatorName ? els.operatorName.value.trim() : "";
+  state.job.partNumber = els.partNumber ? els.partNumber.value.trim() : "";
+  state.job.trackingNumber = els.trackingNumber ? els.trackingNumber.value.trim() : "";
+  state.job.totalLength = els.totalLength ? els.totalLength.value.trim() : "";
+  state.job.numberOfCuts = els.numberOfCuts ? els.numberOfCuts.value.trim() : "";
+  state.job.endMeterValue = els.endMeterValue ? els.endMeterValue.value.trim() : "";
+  state.job.offsetValue = els.offsetValue ? els.offsetValue.value.trim() : "";
 
   const selectedDirection = document.querySelector('input[name="direction"]:checked');
   state.job.direction = selectedDirection ? selectedDirection.value : "ascending";
 }
 
 function updateSummaryHeader() {
-  els.sumSo.textContent = state.job.soNumber || "-";
+  if (els.sumSo) els.sumSo.textContent = state.job.soNumber || "-";
 
   const cuts = state.job.cuts || [];
   const doneCount = cuts.filter(cut => cut.done).length;
   const remainingCount = cuts.length - doneCount;
 
-  els.sumDoneHeader.textContent = doneCount;
-  els.sumRemainingHeader.textContent = remainingCount;
+  if (els.sumDoneHeader) els.sumDoneHeader.textContent = doneCount;
+  if (els.sumRemainingHeader) els.sumRemainingHeader.textContent = remainingCount;
 }
 
 function formatOneDecimal(num) {
@@ -203,8 +203,12 @@ function showPage(pageNumber) {
   state.currentPage = pageNumber;
 
   [1, 2, 3, 4, 5].forEach(n => {
-    els[`page${n}`].classList.toggle("active", n === pageNumber);
-    els[`stepDot${n}`].classList.toggle("active", n === pageNumber);
+    if (els[`page${n}`]) {
+      els[`page${n}`].classList.toggle("active", n === pageNumber);
+    }
+    if (els[`stepDot${n}`]) {
+      els[`stepDot${n}`].classList.toggle("active", n === pageNumber);
+    }
   });
 
   saveState();
@@ -356,14 +360,18 @@ function jumpToNextPending() {
 }
 
 function renderResults() {
+  if (!els.cutsList || !els.resultsSummaryText) return;
+
   const cuts = state.job.cuts || [];
   const nextPendingCutNo = getNextPendingCutNo();
 
-  els.resCutLength.textContent = state.job.cutLength ? `${state.job.cutLength} m` : "-";
+  if (els.resCutLength) {
+    els.resCutLength.textContent = state.job.cutLength ? `${state.job.cutLength} m` : "-";
+  }
 
   const doneCount = cuts.filter(cut => cut.done).length;
-  els.resDone.textContent = doneCount;
-  els.resRemaining.textContent = cuts.length - doneCount;
+  if (els.resDone) els.resDone.textContent = doneCount;
+  if (els.resRemaining) els.resRemaining.textContent = cuts.length - doneCount;
 
   if (!cuts.length) {
     els.resultsSummaryText.textContent = "No cuts generated yet.";
@@ -412,14 +420,16 @@ function renderResults() {
 }
 
 function renderFinalSummary() {
-  els.finalSo.textContent = state.job.soNumber || "-";
-  els.finalOperator.textContent = state.job.operatorName || "-";
-  els.finalPart.textContent = state.job.partNumber || "-";
-  els.finalTracking.textContent = state.job.trackingNumber || "-";
-  els.finalTotalLength.textContent = state.job.totalLength ? `${state.job.totalLength} m` : "-";
-  els.finalCutCount.textContent = state.job.numberOfCuts || "-";
-  els.finalCutLength.textContent = state.job.cutLength ? `${state.job.cutLength} m` : "-";
-  els.finalDirection.textContent = capitalize(state.job.direction || "-");
+  if (!els.finalCutsCompactList) return;
+
+  if (els.finalSo) els.finalSo.textContent = state.job.soNumber || "-";
+  if (els.finalOperator) els.finalOperator.textContent = state.job.operatorName || "-";
+  if (els.finalPart) els.finalPart.textContent = state.job.partNumber || "-";
+  if (els.finalTracking) els.finalTracking.textContent = state.job.trackingNumber || "-";
+  if (els.finalTotalLength) els.finalTotalLength.textContent = state.job.totalLength ? `${state.job.totalLength} m` : "-";
+  if (els.finalCutCount) els.finalCutCount.textContent = state.job.numberOfCuts || "-";
+  if (els.finalCutLength) els.finalCutLength.textContent = state.job.cutLength ? `${state.job.cutLength} m` : "-";
+  if (els.finalDirection) els.finalDirection.textContent = capitalize(state.job.direction || "-");
 
   const cuts = state.job.cuts || [];
 
@@ -449,7 +459,7 @@ function allCutsDone() {
 }
 
 function goToFinalSummaryIfComplete() {
-  if (allCutsDone()) {
+  if (allCutsDone() && els.page5) {
     renderFinalSummary();
     showPage(5);
   }
@@ -536,6 +546,7 @@ function capitalize(value) {
 }
 
 async function startScanner() {
+  if (!els.scannerWrap || !els.scanSoBtn || !els.stopScanBtn) return;
   if (scannerRunning) return;
 
   if (typeof Html5Qrcode === "undefined") {
@@ -558,7 +569,7 @@ async function startScanner() {
         qrbox: { width: 250, height: 120 }
       },
       (decodedText) => {
-        els.soNumber.value = decodedText.trim();
+        if (els.soNumber) els.soNumber.value = decodedText.trim();
         syncStateFromInputs();
         updateSummaryHeader();
         saveState();
@@ -588,9 +599,10 @@ async function stopScanner() {
 
   html5QrCode = null;
   scannerRunning = false;
-  els.scannerWrap.classList.add("hidden");
-  els.scanSoBtn.style.display = "inline-block";
-  els.stopScanBtn.style.display = "none";
+
+  if (els.scannerWrap) els.scannerWrap.classList.add("hidden");
+  if (els.scanSoBtn) els.scanSoBtn.style.display = "inline-block";
+  if (els.stopScanBtn) els.stopScanBtn.style.display = "none";
 }
 
 function attachLiveInputHandlers() {
@@ -615,55 +627,65 @@ function attachLiveInputHandlers() {
 }
 
 function attachButtonHandlers() {
-  els.p1NextBtn.addEventListener("click", () => {
-    if (!validatePage1()) return;
-    showPage(2);
-  });
+  if (els.p1NextBtn) {
+    els.p1NextBtn.addEventListener("click", () => {
+      if (!validatePage1()) return;
+      showPage(2);
+    });
+  }
 
-  els.scanSoBtn.addEventListener("click", startScanner);
-  els.stopScanBtn.addEventListener("click", stopScanner);
+  if (els.scanSoBtn) els.scanSoBtn.addEventListener("click", startScanner);
+  if (els.stopScanBtn) els.stopScanBtn.addEventListener("click", stopScanner);
 
-  els.p2BackBtn.addEventListener("click", () => showPage(1));
+  if (els.p2BackBtn) els.p2BackBtn.addEventListener("click", () => showPage(1));
 
-  els.p2NextBtn.addEventListener("click", () => {
-    if (!validatePage2()) return;
-    updateLivePreviews();
-    showPage(3);
-  });
+  if (els.p2NextBtn) {
+    els.p2NextBtn.addEventListener("click", () => {
+      if (!validatePage2()) return;
+      updateLivePreviews();
+      showPage(3);
+    });
+  }
 
-  els.p3BackBtn.addEventListener("click", () => showPage(2));
+  if (els.p3BackBtn) els.p3BackBtn.addEventListener("click", () => showPage(2));
 
-  els.generateBtn.addEventListener("click", () => {
-    if (!validatePage1() || !validatePage2() || !validatePage3()) return;
-    buildCuts();
-    renderResults();
-    showPage(4);
-  });
+  if (els.generateBtn) {
+    els.generateBtn.addEventListener("click", () => {
+      if (!validatePage1() || !validatePage2() || !validatePage3()) return;
+      buildCuts();
+      renderResults();
+      showPage(4);
+    });
+  }
 
-  els.p4BackBtn.addEventListener("click", () => showPage(3));
+  if (els.p4BackBtn) els.p4BackBtn.addEventListener("click", () => showPage(3));
 
-  els.regenerateBtn.addEventListener("click", () => {
-    if (!validatePage1() || !validatePage2() || !validatePage3()) return;
-    buildCuts();
-    renderResults();
-    alert("Cuts recalculated.");
-  });
+  if (els.regenerateBtn) {
+    els.regenerateBtn.addEventListener("click", () => {
+      if (!validatePage1() || !validatePage2() || !validatePage3()) return;
+      buildCuts();
+      renderResults();
+      alert("Cuts recalculated.");
+    });
+  }
 
   if (els.nextPendingBtn) {
     els.nextPendingBtn.addEventListener("click", jumpToNextPending);
   }
 
-  els.markAllDoneBtn.addEventListener("click", markAllDone);
+  if (els.markAllDoneBtn) els.markAllDoneBtn.addEventListener("click", markAllDone);
 
-  els.p5BackBtn.addEventListener("click", () => showPage(4));
+  if (els.p5BackBtn) els.p5BackBtn.addEventListener("click", () => showPage(4));
 
-  els.startNewJobBtn.addEventListener("click", () => {
-    const ok = confirm("Start a new job?");
-    if (!ok) return;
-    resetWholeJob();
-  });
+  if (els.startNewJobBtn) {
+    els.startNewJobBtn.addEventListener("click", () => {
+      const ok = confirm("Start a new job?");
+      if (!ok) return;
+      resetWholeJob();
+    });
+  }
 
-  els.clearAllBtn.addEventListener("click", clearAll);
+  if (els.clearAllBtn) els.clearAllBtn.addEventListener("click", clearAll);
 }
 
 function init() {
