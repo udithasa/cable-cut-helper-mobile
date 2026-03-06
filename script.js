@@ -365,14 +365,6 @@ function renderResults() {
   const cuts = state.job.cuts || [];
   const nextPendingCutNo = getNextPendingCutNo();
 
-  if (els.resCutLength) {
-    els.resCutLength.textContent = state.job.cutLength ? `${state.job.cutLength} m` : "-";
-  }
-
-  const doneCount = cuts.filter(cut => cut.done).length;
-  if (els.resDone) els.resDone.textContent = doneCount;
-  if (els.resRemaining) els.resRemaining.textContent = cuts.length - doneCount;
-
   if (!cuts.length) {
     els.resultsSummaryText.textContent = "No cuts generated yet.";
     els.cutsList.innerHTML = `<p class="empty-text">No cuts generated yet.</p>`;
