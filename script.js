@@ -74,6 +74,8 @@ const els = {
   p5BackBtn: document.getElementById("p5BackBtn"),
   startNewJobBtn: document.getElementById("startNewJobBtn"),
   clearAllBtn: document.getElementById("clearAllBtn")
+  
+  nextPendingBtn: document.getElementById("nextPendingBtn"),
 };
 
 function saveState() {
@@ -466,6 +468,17 @@ function markAllDone() {
   goToFinalSummaryIfComplete();
 }
 
+function jumpToNextPending() {
+  const nextPendingCutNo = getNextPendingCutNo();
+
+  if (!nextPendingCutNo) {
+    alert("All cuts are already done.");
+    return;
+  }
+
+  scrollToCut(nextPendingCutNo);
+}
+
 function resetWholeJob() {
   state.currentPage = 1;
   state.job = {
@@ -571,6 +584,8 @@ function attachButtonHandlers() {
     if (!ok) return;
     resetWholeJob();
   });
+
+  els.nextPendingBtn.addEventListener("click", jumpToNextPending);
 
   els.clearAllBtn.addEventListener("click", clearAll);
 }
