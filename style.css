@@ -612,3 +612,38 @@ select:focus {
 .results-actions button {
   flex: 1;
 }
+
+.scan-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.scan-row > * {
+  flex: 1;
+}
+
+.scanner-wrap {
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--card2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.scanner-wrap.hidden {
+  display: none;
+}
+
+#reader {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.scanner-help {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
