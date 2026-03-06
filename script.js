@@ -488,10 +488,6 @@ function toggleDone(cutNo) {
   scrollToCut(nextPendingCutNo);
 }
 
-  const nextPendingCutNo = getNextPendingCutNo();
-  scrollToCut(nextPendingCutNo);
-}
-
 window.toggleDone = toggleDone;
 
 function markAllDone() {
@@ -638,10 +634,19 @@ function attachLiveInputHandlers() {
 
 function attachButtonHandlers() {
   if (els.p1NextBtn) {
-    els.p1NextBtn.onclick = function () {
-      if (!validatePage1()) return;
-      showPage(2);
-    };
+    els.p1NextBtn.onclick = handlePage1NextSimple;
+  }
+  
+  if (els.createNewLineBtn) {
+    els.createNewLineBtn.onclick = createNewJobLineAndContinue;
+  }
+  
+  if (els.loadExistingBtn) {
+    els.loadExistingBtn.onclick = loadExistingJobSimple;
+  }
+  
+  if (els.closeSoModalBtn) {
+    els.closeSoModalBtn.onclick = closeSoChoiceModal;
   }
 
   if (els.scanSoBtn) {
