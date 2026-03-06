@@ -602,3 +602,13 @@ select:focus {
     gap: 6px 10px;
   }
 }
+
+.results-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.results-actions button {
+  flex: 1;
+}
