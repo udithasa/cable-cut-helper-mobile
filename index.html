@@ -7,101 +7,168 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="app">
-    <header class="topbar">
-      <h1>Cable Cut Helper</h1>
-      <p class="subtitle">Mobile Development Version</p>
+  <div class="app-shell">
+    <header class="summary-header">
+      <div class="summary-top">
+        <div>
+          <h1>Cable Cut Helper</h1>
+          <p class="subtitle">Mobile wizard version</p>
+        </div>
+        <button id="clearAllBtn" class="btn danger small">Clear All</button>
+      </div>
+
+      <div class="summary-grid">
+        <div class="summary-item">
+          <span class="label">SO</span>
+          <span id="sumSo">-</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Operator</span>
+          <span id="sumOperator">-</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Part No</span>
+          <span id="sumPart">-</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Tracking</span>
+          <span id="sumTracking">-</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Total Length</span>
+          <span id="sumTotalLength">-</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Cuts</span>
+          <span id="sumCuts">-</span>
+        </div>
+      </div>
+
+      <div class="step-indicator">
+        <div id="stepDot1" class="step-dot active">1</div>
+        <div id="stepDot2" class="step-dot">2</div>
+        <div id="stepDot3" class="step-dot">3</div>
+        <div id="stepDot4" class="step-dot">4</div>
+      </div>
     </header>
 
-    <main class="container">
-      <!-- Job Details -->
-      <section class="card">
-        <h2>Job Details</h2>
+    <main class="page-wrap">
+      <!-- PAGE 1 -->
+      <section id="page1" class="page active">
+        <div class="card">
+          <h2>Page 1 — Job Details</h2>
 
-        <label for="soNumber">SO Number</label>
-        <input type="text" id="soNumber" placeholder="Enter SO number" />
+          <label for="soNumber">SO Number</label>
+          <input id="soNumber" type="text" placeholder="Enter SO number" />
 
-        <label for="operatorName">Operator Name</label>
-        <input type="text" id="operatorName" placeholder="Enter operator name" />
+          <label for="operatorName">Operator Name</label>
+          <input id="operatorName" type="text" placeholder="Enter operator name" />
 
-        <div class="button-row">
-          <button id="saveJobBtn" class="primary-btn">Save Job</button>
-          <button id="newJobBtn" class="secondary-btn">New Job</button>
-        </div>
-      </section>
-
-      <!-- Add Cut -->
-      <section class="card">
-        <h2>Add Cut</h2>
-
-        <label for="partNumber">Part Number</label>
-        <input type="text" id="partNumber" placeholder="Enter part number" />
-
-        <label for="length">Length</label>
-        <input type="text" id="length" placeholder="Enter cut length" />
-
-        <label for="qty">Quantity</label>
-        <input type="number" id="qty" min="1" value="1" />
-
-        <button id="addCutBtn" class="primary-btn full-width">Add Cut</button>
-      </section>
-
-      <!-- Job Summary -->
-      <section class="card">
-        <h2>Job Summary</h2>
-        <div class="summary-grid">
-          <div class="summary-box">
-            <span class="summary-label">Total Cuts</span>
-            <span id="totalCuts" class="summary-value">0</span>
-          </div>
-          <div class="summary-box">
-            <span class="summary-label">Done</span>
-            <span id="doneCuts" class="summary-value">0</span>
-          </div>
-          <div class="summary-box">
-            <span class="summary-label">Remaining</span>
-            <span id="remainingCuts" class="summary-value">0</span>
+          <div class="nav-row">
+            <button id="p1SaveBtn" class="btn secondary">Save</button>
+            <button id="p1NextBtn" class="btn primary">Next</button>
           </div>
         </div>
       </section>
 
-      <!-- Next 3 Cuts -->
-      <section class="card">
-        <div class="section-header">
-          <h2>Next 3 Cuts</h2>
-          <button id="refresh3Btn" class="secondary-btn small-btn">Refresh</button>
-        </div>
+      <!-- PAGE 2 -->
+      <section id="page2" class="page">
+        <div class="card">
+          <h2>Page 2 — Cable Details</h2>
 
-        <div id="nextThreeList" class="list-stack">
-          <p class="empty-text">No cuts added yet.</p>
-        </div>
-      </section>
+          <label for="partNumber">Cable Part Number</label>
+          <input id="partNumber" type="text" placeholder="Enter cable part number" />
 
-      <!-- All Cuts -->
-      <section class="card">
-        <div class="section-header">
-          <h2>All Cuts</h2>
-          <button id="clearCutsBtn" class="danger-btn small-btn">Clear Cuts</button>
-        </div>
+          <label for="trackingNumber">Tracking Number</label>
+          <input id="trackingNumber" type="text" placeholder="Enter tracking number" />
 
-        <div id="allCutsList" class="list-stack">
-          <p class="empty-text">No cuts added yet.</p>
-        </div>
-      </section>
+          <label for="totalLength">Total Length Needed (y)</label>
+          <input id="totalLength" type="number" min="0" step="0.1" placeholder="Example: 12.0" />
 
-      <!-- History -->
-      <section class="card">
-        <div class="section-header">
-          <h2>Local History</h2>
-          <div class="button-row compact">
-            <button id="viewHistoryBtn" class="secondary-btn small-btn">View</button>
-            <button id="clearHistoryBtn" class="danger-btn small-btn">Clear</button>
+          <label for="numberOfCuts">Number of Cuts (n)</label>
+          <input id="numberOfCuts" type="number" min="1" step="1" placeholder="Example: 4" />
+
+          <div class="info-box">
+            <strong>Cut length x:</strong> <span id="cutLengthPreview">-</span>
+          </div>
+
+          <div class="nav-row">
+            <button id="p2BackBtn" class="btn secondary">Back</button>
+            <button id="p2NextBtn" class="btn primary">Next</button>
           </div>
         </div>
+      </section>
 
-        <div id="historyPanel" class="history-panel hidden">
-          <div id="historyList" class="list-stack">
-            <p class="empty-text">No history yet.</p>
+      <!-- PAGE 3 -->
+      <section id="page3" class="page">
+        <div class="card">
+          <h2>Page 3 — Calculation Setup</h2>
+
+          <label for="endMeterValue">End Full Meter Value (E)</label>
+          <input id="endMeterValue" type="number" step="1" placeholder="Example: 60" />
+
+          <label for="offsetValue">Offset from End (e)</label>
+          <input id="offsetValue" type="number" min="0" max="0.9" step="0.1" placeholder="0.0 to 0.9" />
+
+          <label>Direction</label>
+          <div class="radio-group">
+            <label class="radio-card">
+              <input type="radio" name="direction" value="ascending" checked />
+              <span>Ascending</span>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="direction" value="descending" />
+              <span>Descending</span>
+            </label>
+          </div>
+
+          <div class="info-box">
+            <div><strong>Start reading S:</strong> <span id="startReadingPreview">-</span></div>
+            <div><strong>Rule:</strong> output shows reading between full marks plus offset from each.</div>
+          </div>
+
+          <div class="nav-row">
+            <button id="p3BackBtn" class="btn secondary">Back</button>
+            <button id="generateBtn" class="btn primary">Generate Cuts</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- PAGE 4 -->
+      <section id="page4" class="page">
+        <div class="card">
+          <div class="results-head">
+            <div>
+              <h2>Page 4 — Cut Results</h2>
+              <p class="muted" id="resultsSummaryText">No cuts generated yet.</p>
+            </div>
+            <div class="results-actions">
+              <button id="regenerateBtn" class="btn secondary small">Recalculate</button>
+            </div>
+          </div>
+
+          <div class="stats-row">
+            <div class="stat-box">
+              <span class="label">Cut Length x</span>
+              <span id="resCutLength">-</span>
+            </div>
+            <div class="stat-box">
+              <span class="label">Done</span>
+              <span id="resDone">0</span>
+            </div>
+            <div class="stat-box">
+              <span class="label">Remaining</span>
+              <span id="resRemaining">0</span>
+            </div>
+          </div>
+
+          <div id="cutsList" class="cuts-list">
+            <p class="empty-text">No cuts generated yet.</p>
+          </div>
+
+          <div class="nav-row">
+            <button id="p4BackBtn" class="btn secondary">Back</button>
+            <button id="markAllDoneBtn" class="btn primary">Mark All Done</button>
           </div>
         </div>
       </section>
