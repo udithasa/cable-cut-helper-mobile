@@ -4,6 +4,8 @@ const state = {
   currentPage: 1,
   job: {
     soNumber: "",
+    jobLineId: "",
+    lineNumber: 0,
     operatorName: "",
     partNumber: "",
     trackingNumber: "",
@@ -83,6 +85,12 @@ const els = {
   p5BackBtn: document.getElementById("p5BackBtn"),
   startNewJobBtn: document.getElementById("startNewJobBtn"),
   clearAllBtn: document.getElementById("clearAllBtn")
+
+  soChoiceModal: document.getElementById("soChoiceModal"),
+  soChoiceText: document.getElementById("soChoiceText"),
+  createNewLineBtn: document.getElementById("createNewLineBtn"),
+  loadExistingBtn: document.getElementById("loadExistingBtn"),
+  closeSoModalBtn: document.getElementById("closeSoModalBtn"),
 };
 
 function saveState() {
@@ -630,10 +638,19 @@ function attachLiveInputHandlers() {
 
 function attachButtonHandlers() {
   if (els.p1NextBtn) {
-    els.p1NextBtn.addEventListener("click", () => {
-      if (!validatePage1()) return;
-      showPage(2);
-    });
+    els.p1NextBtn.addEventListener("click", handlePage1NextSimple);
+  }
+  
+  if (els.createNewLineBtn) {
+    els.createNewLineBtn.addEventListener("click", createNewJobLineAndContinue);
+  }
+  
+  if (els.loadExistingBtn) {
+    els.loadExistingBtn.addEventListener("click", loadExistingJobSimple);
+  }
+  
+  if (els.closeSoModalBtn) {
+    els.closeSoModalBtn.addEventListener("click", closeSoChoiceModal);
   }
 
   if (els.scanSoBtn) els.scanSoBtn.addEventListener("click", startScanner);
@@ -688,6 +705,118 @@ function attachButtonHandlers() {
   }
 
   if (els.clearAllBtn) els.clearAllBtn.addEventListener("click", clearAll);
+}
+
+const STORAGE_KEY_JOB_LINES = "cableCutHelperJobLines";
+
+function getSavedJobLines() {
+  const raw = localStorage.getItem(STORAGE_KEY_JOB_LINES);
+  return raw ? JSON.parse(raw) : [];
+}
+
+function saveSavedJobLines(lines) {
+  localStorage.setItem(STORAGE_KEY_JOB_LINES, JSON.stringify(lines));
+}
+
+function findJobLinesBySo(soNumber) {
+  return getSavedJobLines().filter(job => job.soNumber === soNumber);
+}
+
+function getNextJobLine(soNumber) {
+  const existing = findJobLinesBySo(soNumber);
+
+  if (existing.length === 0) {
+    return {
+      jobLineId: `${soNumber}-01`,
+      lineNumber: 1
+    };
+  }
+
+  const maxLine = Math.max(...existing.map(job => Number(job.lineNumber) || 0));
+  const nextLine = maxLine + 1;
+
+  return {
+    jobLineId: `${soNumber}-${String(nextLine).padStart(2, "0")}`,
+    lineNumber: nextLine
+  };
+}
+
+function saveCurrentJobLine() {
+  if (!state.job.soNumber || !state.job.jobLineId) return;
+
+  const lines = getSavedJobLines();
+  const index = lines.findIndex(job => job.jobLineId === state.job.jobLineId);
+
+  const copy = JSON.parse(JSON.stringify(state.job));
+
+  if (index >= 0) {
+    lines[index] = copy;
+  } else {
+    lines.push(copy);
+  }
+
+  saveSavedJobLines(lines);
+}
+
+function openSoChoiceModal(soNumber) {
+  const existing = findJobLinesBySo(soNumber);
+
+  if (!els.soChoiceModal || !els.soChoiceText) return;
+
+  els.soChoiceText.textContent =
+    `SO ${soNumber} already has ${existing.length} saved job line(s).`;
+
+  els.soChoiceModal.classList.remove("hidden");
+}
+
+function closeSoChoiceModal() {
+  if (!els.soChoiceModal) return;
+  els.soChoiceModal.classList.add("hidden");
+}
+
+function createNewJobLineAndContinue() {
+  const soNumber = state.job.soNumber.trim();
+  const operatorName = state.job.operatorName.trim();
+
+  const next = getNextJobLine(soNumber);
+
+  state.job.jobLineId = next.jobLineId;
+  state.job.lineNumber = next.lineNumber;
+  state.job.operatorName = operatorName;
+  state.job.partNumber = "";
+  state.job.trackingNumber = "";
+  state.job.totalLength = "";
+  state.job.numberOfCuts = "";
+  state.job.endMeterValue = "";
+  state.job.offsetValue = "";
+  state.job.direction = "ascending";
+  state.job.cutLength = "";
+  state.job.startReading = "";
+  state.job.cuts = [];
+
+  saveState();
+  saveCurrentJobLine();
+  closeSoChoiceModal();
+  showPage(2);
+}
+
+function loadExistingJobSimple() {
+  alert("Next step: we will add the job line list here.");
+  closeSoChoiceModal();
+}
+
+function handlePage1NextSimple() {
+  if (!validatePage1()) return;
+
+  const soNumber = state.job.soNumber.trim();
+  const existing = findJobLinesBySo(soNumber);
+
+  if (existing.length === 0) {
+    createNewJobLineAndContinue();
+    return;
+  }
+
+  openSoChoiceModal(soNumber);
 }
 
 function init() {
