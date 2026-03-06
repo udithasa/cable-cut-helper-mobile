@@ -18,6 +18,9 @@ const state = {
   }
 };
 
+let html5QrCode = null;
+let scannerRunning = false;
+
 const els = {
   soNumber: document.getElementById("soNumber"),
   operatorName: document.getElementById("operatorName"),
@@ -27,6 +30,10 @@ const els = {
   numberOfCuts: document.getElementById("numberOfCuts"),
   endMeterValue: document.getElementById("endMeterValue"),
   offsetValue: document.getElementById("offsetValue"),
+
+  scanSoBtn: document.getElementById("scanSoBtn"),
+  stopScanBtn: document.getElementById("stopScanBtn"),
+  scannerWrap: document.getElementById("scannerWrap"),
 
   sumSo: document.getElementById("sumSo"),
   sumDoneHeader: document.getElementById("sumDoneHeader"),
@@ -40,6 +47,8 @@ const els = {
   resRemaining: document.getElementById("resRemaining"),
   cutsList: document.getElementById("cutsList"),
   resultsSummaryText: document.getElementById("resultsSummaryText"),
+
+  nextPendingBtn: document.getElementById("nextPendingBtn"),
 
   finalSo: document.getElementById("finalSo"),
   finalOperator: document.getElementById("finalOperator"),
@@ -74,8 +83,6 @@ const els = {
   p5BackBtn: document.getElementById("p5BackBtn"),
   startNewJobBtn: document.getElementById("startNewJobBtn"),
   clearAllBtn: document.getElementById("clearAllBtn")
-  
-  nextPendingBtn: document.getElementById("nextPendingBtn"),
 };
 
 function saveState() {
@@ -178,11 +185,15 @@ function updateLivePreviews() {
 
   const cutLength = getCutLengthNumber();
   state.job.cutLength = cutLength === null ? "" : formatOneDecimal(cutLength);
-  els.cutLengthPreview.textContent = cutLength === null ? "-" : `${formatOneDecimal(cutLength)} m`;
+  if (els.cutLengthPreview) {
+    els.cutLengthPreview.textContent = cutLength === null ? "-" : `${formatOneDecimal(cutLength)} m`;
+  }
 
   const startReading = getStartReadingNumber();
   state.job.startReading = startReading === null ? "" : formatOneDecimal(startReading);
-  els.startReadingPreview.textContent = startReading === null ? "-" : `${formatOneDecimal(startReading)} m`;
+  if (els.startReadingPreview) {
+    els.startReadingPreview.textContent = startReading === null ? "-" : `${formatOneDecimal(startReading)} m`;
+  }
 
   updateSummaryHeader();
   saveState();
@@ -203,7 +214,7 @@ function validatePage1() {
   syncStateFromInputs();
 
   if (!state.job.soNumber) {
-    alert("Please enter SO number.");
+    alert("Please enter or scan SO number.");
     return false;
   }
 
@@ -314,6 +325,36 @@ function buildCuts() {
   updateSummaryHeader();
 }
 
+function getNextPendingCutNo() {
+  const nextPending = (state.job.cuts || []).find(cut => !cut.done);
+  return nextPending ? nextPending.cutNo : null;
+}
+
+function scrollToCut(cutNo) {
+  if (!cutNo) return;
+
+  const target = document.getElementById(`cut-card-${cutNo}`);
+  if (!target) return;
+
+  setTimeout(() => {
+    target.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+  }, 120);
+}
+
+function jumpToNextPending() {
+  const nextPendingCutNo = getNextPendingCutNo();
+
+  if (!nextPendingCutNo) {
+    alert("All cuts are already done.");
+    return;
+  }
+
+  scrollToCut(nextPendingCutNo);
+}
+
 function renderResults() {
   const cuts = state.job.cuts || [];
   const nextPendingCutNo = getNextPendingCutNo();
@@ -368,25 +409,6 @@ function renderResults() {
     .join("");
 
   updateSummaryHeader();
-}
-
-function getNextPendingCutNo() {
-  const nextPending = (state.job.cuts || []).find(cut => !cut.done);
-  return nextPending ? nextPending.cutNo : null;
-}
-
-function scrollToCut(cutNo) {
-  if (!cutNo) return;
-
-  const target = document.getElementById(`cut-card-${cutNo}`);
-  if (!target) return;
-
-  setTimeout(() => {
-    target.scrollIntoView({
-      behavior: "smooth",
-      block: "center"
-    });
-  }, 120);
 }
 
 function renderFinalSummary() {
@@ -468,17 +490,6 @@ function markAllDone() {
   goToFinalSummaryIfComplete();
 }
 
-function jumpToNextPending() {
-  const nextPendingCutNo = getNextPendingCutNo();
-
-  if (!nextPendingCutNo) {
-    alert("All cuts are already done.");
-    return;
-  }
-
-  scrollToCut(nextPendingCutNo);
-}
-
 function resetWholeJob() {
   state.currentPage = 1;
   state.job = {
@@ -496,6 +507,7 @@ function resetWholeJob() {
     cuts: []
   };
 
+  stopScanner();
   localStorage.removeItem(STORAGE_KEY);
   syncInputsFromState();
   updateSummaryHeader();
@@ -523,6 +535,64 @@ function capitalize(value) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
+async function startScanner() {
+  if (scannerRunning) return;
+
+  if (typeof Html5Qrcode === "undefined") {
+    alert("Scanner library failed to load. Check internet connection and refresh.");
+    return;
+  }
+
+  els.scannerWrap.classList.remove("hidden");
+  els.scanSoBtn.style.display = "none";
+  els.stopScanBtn.style.display = "inline-block";
+
+  try {
+    html5QrCode = new Html5Qrcode("reader");
+    scannerRunning = true;
+
+    await html5QrCode.start(
+      { facingMode: "environment" },
+      {
+        fps: 10,
+        qrbox: { width: 250, height: 120 }
+      },
+      (decodedText) => {
+        els.soNumber.value = decodedText.trim();
+        syncStateFromInputs();
+        updateSummaryHeader();
+        saveState();
+        stopScanner();
+      },
+      () => {}
+    );
+  } catch (error) {
+    console.error("Scanner start failed:", error);
+    scannerRunning = false;
+    alert("Could not start camera scanner. Please allow camera access and try again.");
+    els.scannerWrap.classList.add("hidden");
+    els.scanSoBtn.style.display = "inline-block";
+    els.stopScanBtn.style.display = "none";
+  }
+}
+
+async function stopScanner() {
+  if (html5QrCode && scannerRunning) {
+    try {
+      await html5QrCode.stop();
+      await html5QrCode.clear();
+    } catch (error) {
+      console.error("Scanner stop failed:", error);
+    }
+  }
+
+  html5QrCode = null;
+  scannerRunning = false;
+  els.scannerWrap.classList.add("hidden");
+  els.scanSoBtn.style.display = "inline-block";
+  els.stopScanBtn.style.display = "none";
+}
+
 function attachLiveInputHandlers() {
   [
     els.soNumber,
@@ -534,6 +604,7 @@ function attachLiveInputHandlers() {
     els.endMeterValue,
     els.offsetValue
   ].forEach(input => {
+    if (!input) return;
     input.addEventListener("input", updateLivePreviews);
     input.addEventListener("change", updateLivePreviews);
   });
@@ -548,6 +619,9 @@ function attachButtonHandlers() {
     if (!validatePage1()) return;
     showPage(2);
   });
+
+  els.scanSoBtn.addEventListener("click", startScanner);
+  els.stopScanBtn.addEventListener("click", stopScanner);
 
   els.p2BackBtn.addEventListener("click", () => showPage(1));
 
@@ -575,6 +649,10 @@ function attachButtonHandlers() {
     alert("Cuts recalculated.");
   });
 
+  if (els.nextPendingBtn) {
+    els.nextPendingBtn.addEventListener("click", jumpToNextPending);
+  }
+
   els.markAllDoneBtn.addEventListener("click", markAllDone);
 
   els.p5BackBtn.addEventListener("click", () => showPage(4));
@@ -584,8 +662,6 @@ function attachButtonHandlers() {
     if (!ok) return;
     resetWholeJob();
   });
-
-  els.nextPendingBtn.addEventListener("click", jumpToNextPending);
 
   els.clearAllBtn.addEventListener("click", clearAll);
 }
