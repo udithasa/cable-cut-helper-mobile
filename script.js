@@ -84,7 +84,7 @@ const els = {
   markAllDoneBtn: document.getElementById("markAllDoneBtn"),
   p5BackBtn: document.getElementById("p5BackBtn"),
   startNewJobBtn: document.getElementById("startNewJobBtn"),
-  clearAllBtn: document.getElementById("clearAllBtn")
+  clearAllBtn: document.getElementById("clearAllBtn"),
 
   soChoiceModal: document.getElementById("soChoiceModal"),
   soChoiceText: document.getElementById("soChoiceText"),
