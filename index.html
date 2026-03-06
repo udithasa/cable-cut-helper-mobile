@@ -37,6 +37,7 @@
         <div id="stepDot2" class="step-dot">2</div>
         <div id="stepDot3" class="step-dot">3</div>
         <div id="stepDot4" class="step-dot">4</div>
+        <div id="stepDot5" class="step-dot">5</div>
       </div>
     </header>
 
@@ -53,7 +54,6 @@
           <input id="operatorName" type="text" placeholder="Enter operator name" />
 
           <div class="nav-row">
-            <button id="p1SaveBtn" class="btn secondary">Save</button>
             <button id="p1NextBtn" class="btn primary">Next</button>
           </div>
         </div>
@@ -96,7 +96,19 @@
           <input id="endMeterValue" type="number" step="1" placeholder="Example: 60" />
 
           <label for="offsetValue">Offset from End (e)</label>
-          <input id="offsetValue" type="number" min="0" max="0.9" step="0.1" placeholder="0.0 to 0.9" />
+          <select id="offsetValue">
+            <option value="">Select offset</option>
+            <option value="0.0">0.0</option>
+            <option value="0.1">0.1</option>
+            <option value="0.2">0.2</option>
+            <option value="0.3">0.3</option>
+            <option value="0.4">0.4</option>
+            <option value="0.5">0.5</option>
+            <option value="0.6">0.6</option>
+            <option value="0.7">0.7</option>
+            <option value="0.8">0.8</option>
+            <option value="0.9">0.9</option>
+          </select>
 
           <label>Direction</label>
           <div class="radio-group">
@@ -157,6 +169,65 @@
           <div class="nav-row">
             <button id="p4BackBtn" class="btn secondary">Back</button>
             <button id="markAllDoneBtn" class="btn primary">Mark All Done</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- PAGE 5 -->
+      <section id="page5" class="page">
+        <div class="card">
+          <div class="results-head">
+            <div>
+              <h2>Page 5 — Job Summary</h2>
+              <p class="muted">All cuts completed.</p>
+            </div>
+          </div>
+
+          <div class="summary-compact-grid">
+            <div class="compact-info-box">
+              <span class="small-label">SO Number</span>
+              <strong id="finalSo">-</strong>
+            </div>
+            <div class="compact-info-box">
+              <span class="small-label">Operator</span>
+              <strong id="finalOperator">-</strong>
+            </div>
+            <div class="compact-info-box">
+              <span class="small-label">Part Number</span>
+              <strong id="finalPart">-</strong>
+            </div>
+            <div class="compact-info-box">
+              <span class="small-label">Tracking</span>
+              <strong id="finalTracking">-</strong>
+            </div>
+            <div class="compact-info-box">
+              <span class="small-label">Total Length</span>
+              <strong id="finalTotalLength">-</strong>
+            </div>
+            <div class="compact-info-box">
+              <span class="small-label">Number of Cuts</span>
+              <strong id="finalCutCount">-</strong>
+            </div>
+            <div class="compact-info-box">
+              <span class="small-label">Cut Length</span>
+              <strong id="finalCutLength">-</strong>
+            </div>
+            <div class="compact-info-box">
+              <span class="small-label">Direction</span>
+              <strong id="finalDirection">-</strong>
+            </div>
+          </div>
+
+          <div class="compact-summary-list-wrap">
+            <h3 class="compact-title">Completed Cuts</h3>
+            <div id="finalCutsCompactList" class="compact-summary-list">
+              <p class="empty-text">No completed cuts yet.</p>
+            </div>
+          </div>
+
+          <div class="nav-row">
+            <button id="p5BackBtn" class="btn secondary">Back</button>
+            <button id="startNewJobBtn" class="btn primary">Start New Job</button>
           </div>
         </div>
       </section>
