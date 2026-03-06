@@ -1,367 +1,428 @@
-const STORAGE_KEY_CURRENT = "cableCutMobileCurrentJob";
-const STORAGE_KEY_HISTORY = "cableCutMobileHistory";
+const STORAGE_KEY = "cableCutHelperMobileWizard";
 
-let currentJob = {
-  soNumber: "",
-  operatorName: "",
-  cuts: []
-};
-
-const soNumberInput = document.getElementById("soNumber");
-const operatorNameInput = document.getElementById("operatorName");
-const partNumberInput = document.getElementById("partNumber");
-const lengthInput = document.getElementById("length");
-const qtyInput = document.getElementById("qty");
-
-const saveJobBtn = document.getElementById("saveJobBtn");
-const newJobBtn = document.getElementById("newJobBtn");
-const addCutBtn = document.getElementById("addCutBtn");
-const refresh3Btn = document.getElementById("refresh3Btn");
-const clearCutsBtn = document.getElementById("clearCutsBtn");
-const viewHistoryBtn = document.getElementById("viewHistoryBtn");
-const clearHistoryBtn = document.getElementById("clearHistoryBtn");
-
-const totalCutsEl = document.getElementById("totalCuts");
-const doneCutsEl = document.getElementById("doneCuts");
-const remainingCutsEl = document.getElementById("remainingCuts");
-
-const nextThreeList = document.getElementById("nextThreeList");
-const allCutsList = document.getElementById("allCutsList");
-
-const historyPanel = document.getElementById("historyPanel");
-const historyList = document.getElementById("historyList");
-
-function saveCurrentJobToStorage() {
-  localStorage.setItem(STORAGE_KEY_CURRENT, JSON.stringify(currentJob));
-}
-
-function loadCurrentJobFromStorage() {
-  const saved = localStorage.getItem(STORAGE_KEY_CURRENT);
-  if (saved) {
-    currentJob = JSON.parse(saved);
-  }
-}
-
-function getHistory() {
-  const history = localStorage.getItem(STORAGE_KEY_HISTORY);
-  return history ? JSON.parse(history) : [];
-}
-
-function saveHistory(historyArray) {
-  localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(historyArray));
-}
-
-function formatDateTime(dateString) {
-  const date = new Date(dateString);
-  return date.toLocaleString();
-}
-
-function updateFormFromJob() {
-  soNumberInput.value = currentJob.soNumber || "";
-  operatorNameInput.value = currentJob.operatorName || "";
-}
-
-function saveJobDetails() {
-  currentJob.soNumber = soNumberInput.value.trim();
-  currentJob.operatorName = operatorNameInput.value.trim();
-
-  saveCurrentJobToStorage();
-  alert("Job details saved.");
-  renderAll();
-}
-
-function createCutObject(partNumber, length, qty) {
-  return {
-    id: Date.now() + Math.random().toString(16).slice(2),
-    partNumber,
-    length,
-    qty,
-    done: false,
-    createdAt: new Date().toISOString(),
-    doneAt: null
-  };
-}
-
-function addCut() {
-  const partNumber = partNumberInput.value.trim();
-  const length = lengthInput.value.trim();
-  const qty = parseInt(qtyInput.value, 10);
-
-  if (!currentJob.soNumber.trim()) {
-    alert("Please enter and save SO number first.");
-    return;
-  }
-
-  if (!currentJob.operatorName.trim()) {
-    alert("Please enter and save operator name first.");
-    return;
-  }
-
-  if (!partNumber) {
-    alert("Please enter part number.");
-    return;
-  }
-
-  if (!length) {
-    alert("Please enter length.");
-    return;
-  }
-
-  if (!qty || qty < 1) {
-    alert("Quantity must be at least 1.");
-    return;
-  }
-
-  const cut = createCutObject(partNumber, length, qty);
-  currentJob.cuts.push(cut);
-
-  saveCurrentJobToStorage();
-
-  partNumberInput.value = "";
-  lengthInput.value = "";
-  qtyInput.value = "1";
-
-  renderAll();
-}
-
-function markCutDone(cutId) {
-  const cut = currentJob.cuts.find(c => c.id === cutId);
-  if (!cut) return;
-
-  cut.done = true;
-  cut.doneAt = new Date().toISOString();
-
-  saveCurrentJobToStorage();
-  renderAll();
-}
-
-function markCutUndone(cutId) {
-  const cut = currentJob.cuts.find(c => c.id === cutId);
-  if (!cut) return;
-
-  cut.done = false;
-  cut.doneAt = null;
-
-  saveCurrentJobToStorage();
-  renderAll();
-}
-
-function deleteCut(cutId) {
-  const confirmed = confirm("Delete this cut?");
-  if (!confirmed) return;
-
-  currentJob.cuts = currentJob.cuts.filter(c => c.id !== cutId);
-  saveCurrentJobToStorage();
-  renderAll();
-}
-
-function getPendingCuts() {
-  return currentJob.cuts.filter(c => !c.done);
-}
-
-function renderSummary() {
-  const total = currentJob.cuts.length;
-  const done = currentJob.cuts.filter(c => c.done).length;
-  const remaining = total - done;
-
-  totalCutsEl.textContent = total;
-  doneCutsEl.textContent = done;
-  remainingCutsEl.textContent = remaining;
-}
-
-function createCutCard(cut, inNextThree = false) {
-  const wrapper = document.createElement("div");
-  wrapper.className = "cut-item" + (cut.done ? " done" : "");
-
-  const statusClass = cut.done ? "status-done" : "status-pending";
-  const statusText = cut.done ? "DONE" : "PENDING";
-
-  wrapper.innerHTML = `
-    <div class="cut-top">
-      <div>
-        <div class="cut-title">${escapeHtml(cut.partNumber)}</div>
-        <div class="cut-meta">
-          Length: ${escapeHtml(cut.length)}<br>
-          Qty: ${cut.qty}<br>
-          Added: ${formatDateTime(cut.createdAt)}
-          ${cut.doneAt ? `<br>Done: ${formatDateTime(cut.doneAt)}` : ""}
-        </div>
-      </div>
-      <span class="status-badge ${statusClass}">${statusText}</span>
-    </div>
-    <div class="cut-actions"></div>
-  `;
-
-  const actions = wrapper.querySelector(".cut-actions");
-
-  if (cut.done) {
-    const undoBtn = document.createElement("button");
-    undoBtn.className = "secondary-btn";
-    undoBtn.textContent = "Undo";
-    undoBtn.onclick = () => markCutUndone(cut.id);
-    actions.appendChild(undoBtn);
-  } else {
-    const doneBtn = document.createElement("button");
-    doneBtn.className = "primary-btn";
-    doneBtn.textContent = "Mark Done";
-    doneBtn.onclick = () => markCutDone(cut.id);
-    actions.appendChild(doneBtn);
-  }
-
-  if (!inNextThree) {
-    const deleteBtn = document.createElement("button");
-    deleteBtn.className = "danger-btn";
-    deleteBtn.textContent = "Delete";
-    deleteBtn.onclick = () => deleteCut(cut.id);
-    actions.appendChild(deleteBtn);
-  }
-
-  return wrapper;
-}
-
-function renderNextThree() {
-  nextThreeList.innerHTML = "";
-
-  const nextThree = getPendingCuts().slice(0, 3);
-
-  if (nextThree.length === 0) {
-    nextThreeList.innerHTML = `<p class="empty-text">No pending cuts.</p>`;
-    return;
-  }
-
-  nextThree.forEach(cut => {
-    nextThreeList.appendChild(createCutCard(cut, true));
-  });
-}
-
-function renderAllCuts() {
-  allCutsList.innerHTML = "";
-
-  if (currentJob.cuts.length === 0) {
-    allCutsList.innerHTML = `<p class="empty-text">No cuts added yet.</p>`;
-    return;
-  }
-
-  currentJob.cuts.forEach(cut => {
-    allCutsList.appendChild(createCutCard(cut, false));
-  });
-}
-
-function archiveCurrentJobToHistory() {
-  if (!currentJob.soNumber && currentJob.cuts.length === 0) return;
-
-  const history = getHistory();
-
-  const historyItem = {
-    id: Date.now(),
-    soNumber: currentJob.soNumber || "",
-    operatorName: currentJob.operatorName || "",
-    cuts: currentJob.cuts,
-    savedAt: new Date().toISOString()
-  };
-
-  history.unshift(historyItem);
-  saveHistory(history);
-}
-
-function startNewJob() {
-  const hasData =
-    currentJob.soNumber.trim() ||
-    currentJob.operatorName.trim() ||
-    currentJob.cuts.length > 0;
-
-  if (hasData) {
-    const shouldSave = confirm(
-      "Do you want to save the current job to local history before starting a new job?"
-    );
-
-    if (shouldSave) {
-      archiveCurrentJobToHistory();
-    }
-  }
-
-  currentJob = {
+const state = {
+  currentPage: 1,
+  job: {
     soNumber: "",
     operatorName: "",
+    partNumber: "",
+    trackingNumber: "",
+    totalLength: "",
+    numberOfCuts: "",
+    endMeterValue: "",
+    offsetValue: "",
+    direction: "ascending",
+    cutLength: "",
+    startReading: "",
+    cuts: []
+  }
+};
+
+const els = {
+  soNumber: document.getElementById("soNumber"),
+  operatorName: document.getElementById("operatorName"),
+  partNumber: document.getElementById("partNumber"),
+  trackingNumber: document.getElementById("trackingNumber"),
+  totalLength: document.getElementById("totalLength"),
+  numberOfCuts: document.getElementById("numberOfCuts"),
+  endMeterValue: document.getElementById("endMeterValue"),
+  offsetValue: document.getElementById("offsetValue"),
+
+  sumSo: document.getElementById("sumSo"),
+  sumOperator: document.getElementById("sumOperator"),
+  sumPart: document.getElementById("sumPart"),
+  sumTracking: document.getElementById("sumTracking"),
+  sumTotalLength: document.getElementById("sumTotalLength"),
+  sumCuts: document.getElementById("sumCuts"),
+
+  cutLengthPreview: document.getElementById("cutLengthPreview"),
+  startReadingPreview: document.getElementById("startReadingPreview"),
+
+  resCutLength: document.getElementById("resCutLength"),
+  resDone: document.getElementById("resDone"),
+  resRemaining: document.getElementById("resRemaining"),
+  cutsList: document.getElementById("cutsList"),
+  resultsSummaryText: document.getElementById("resultsSummaryText"),
+
+  page1: document.getElementById("page1"),
+  page2: document.getElementById("page2"),
+  page3: document.getElementById("page3"),
+  page4: document.getElementById("page4"),
+
+  stepDot1: document.getElementById("stepDot1"),
+  stepDot2: document.getElementById("stepDot2"),
+  stepDot3: document.getElementById("stepDot3"),
+  stepDot4: document.getElementById("stepDot4"),
+
+  p1SaveBtn: document.getElementById("p1SaveBtn"),
+  p1NextBtn: document.getElementById("p1NextBtn"),
+  p2BackBtn: document.getElementById("p2BackBtn"),
+  p2NextBtn: document.getElementById("p2NextBtn"),
+  p3BackBtn: document.getElementById("p3BackBtn"),
+  generateBtn: document.getElementById("generateBtn"),
+  p4BackBtn: document.getElementById("p4BackBtn"),
+  regenerateBtn: document.getElementById("regenerateBtn"),
+  markAllDoneBtn: document.getElementById("markAllDoneBtn"),
+  clearAllBtn: document.getElementById("clearAllBtn")
+};
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function loadState() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (!saved) return;
+
+  try {
+    const parsed = JSON.parse(saved);
+    if (parsed && parsed.job) {
+      state.currentPage = parsed.currentPage || 1;
+      state.job = {
+        ...state.job,
+        ...parsed.job,
+        cuts: Array.isArray(parsed.job.cuts) ? parsed.job.cuts : []
+      };
+    }
+  } catch (error) {
+    console.error("Failed to load state:", error);
+  }
+}
+
+function syncInputsFromState() {
+  els.soNumber.value = state.job.soNumber || "";
+  els.operatorName.value = state.job.operatorName || "";
+  els.partNumber.value = state.job.partNumber || "";
+  els.trackingNumber.value = state.job.trackingNumber || "";
+  els.totalLength.value = state.job.totalLength || "";
+  els.numberOfCuts.value = state.job.numberOfCuts || "";
+  els.endMeterValue.value = state.job.endMeterValue || "";
+  els.offsetValue.value = state.job.offsetValue || "";
+
+  const radios = document.querySelectorAll('input[name="direction"]');
+  radios.forEach(radio => {
+    radio.checked = radio.value === state.job.direction;
+  });
+}
+
+function syncStateFromInputs() {
+  state.job.soNumber = els.soNumber.value.trim();
+  state.job.operatorName = els.operatorName.value.trim();
+  state.job.partNumber = els.partNumber.value.trim();
+  state.job.trackingNumber = els.trackingNumber.value.trim();
+  state.job.totalLength = els.totalLength.value.trim();
+  state.job.numberOfCuts = els.numberOfCuts.value.trim();
+  state.job.endMeterValue = els.endMeterValue.value.trim();
+  state.job.offsetValue = els.offsetValue.value.trim();
+
+  const selectedDirection = document.querySelector('input[name="direction"]:checked');
+  state.job.direction = selectedDirection ? selectedDirection.value : "ascending";
+}
+
+function updateSummaryHeader() {
+  els.sumSo.textContent = state.job.soNumber || "-";
+  els.sumOperator.textContent = state.job.operatorName || "-";
+  els.sumPart.textContent = state.job.partNumber || "-";
+  els.sumTracking.textContent = state.job.trackingNumber || "-";
+  els.sumTotalLength.textContent = state.job.totalLength ? `${state.job.totalLength} m` : "-";
+  els.sumCuts.textContent = state.job.numberOfCuts || "-";
+}
+
+function formatOneDecimal(num) {
+  return Number(num).toFixed(1);
+}
+
+function getCutLengthNumber() {
+  const totalLength = Number(state.job.totalLength);
+  const numberOfCuts = Number(state.job.numberOfCuts);
+
+  if (!Number.isFinite(totalLength) || !Number.isFinite(numberOfCuts) || numberOfCuts <= 0) {
+    return null;
+  }
+
+  return Number((totalLength / numberOfCuts).toFixed(1));
+}
+
+function getStartReadingNumber() {
+  const E = Number(state.job.endMeterValue);
+  const e = Number(state.job.offsetValue);
+  const direction = state.job.direction;
+
+  if (!Number.isFinite(E) || !Number.isFinite(e)) {
+    return null;
+  }
+
+  if (direction === "ascending") {
+    return Number((E - e).toFixed(1));
+  }
+
+  return Number((E + e).toFixed(1));
+}
+
+function updateLivePreviews() {
+  syncStateFromInputs();
+
+  const cutLength = getCutLengthNumber();
+  state.job.cutLength = cutLength === null ? "" : formatOneDecimal(cutLength);
+  els.cutLengthPreview.textContent = cutLength === null ? "-" : `${formatOneDecimal(cutLength)} m`;
+
+  const startReading = getStartReadingNumber();
+  state.job.startReading = startReading === null ? "" : formatOneDecimal(startReading);
+  els.startReadingPreview.textContent = startReading === null ? "-" : `${formatOneDecimal(startReading)} m`;
+
+  updateSummaryHeader();
+  saveState();
+}
+
+function showPage(pageNumber) {
+  state.currentPage = pageNumber;
+
+  [1, 2, 3, 4].forEach(n => {
+    els[`page${n}`].classList.toggle("active", n === pageNumber);
+    els[`stepDot${n}`].classList.toggle("active", n === pageNumber);
+  });
+
+  saveState();
+}
+
+function validatePage1() {
+  syncStateFromInputs();
+
+  if (!state.job.soNumber) {
+    alert("Please enter SO number.");
+    return false;
+  }
+
+  if (!state.job.operatorName) {
+    alert("Please enter operator name.");
+    return false;
+  }
+
+  saveState();
+  updateSummaryHeader();
+  return true;
+}
+
+function validatePage2() {
+  syncStateFromInputs();
+
+  if (!state.job.partNumber) {
+    alert("Please enter cable part number.");
+    return false;
+  }
+
+  if (!state.job.trackingNumber) {
+    alert("Please enter tracking number.");
+    return false;
+  }
+
+  const totalLength = Number(state.job.totalLength);
+  const numberOfCuts = Number(state.job.numberOfCuts);
+
+  if (!Number.isFinite(totalLength) || totalLength <= 0) {
+    alert("Please enter a valid total length.");
+    return false;
+  }
+
+  if (!Number.isInteger(numberOfCuts) || numberOfCuts <= 0) {
+    alert("Please enter a valid number of cuts.");
+    return false;
+  }
+
+  const cutLength = getCutLengthNumber();
+  state.job.cutLength = formatOneDecimal(cutLength);
+
+  saveState();
+  updateSummaryHeader();
+  return true;
+}
+
+function validatePage3() {
+  syncStateFromInputs();
+
+  const E = Number(state.job.endMeterValue);
+  const e = Number(state.job.offsetValue);
+
+  if (!Number.isFinite(E)) {
+    alert("Please enter a valid end full meter value.");
+    return false;
+  }
+
+  if (!Number.isFinite(e) || e < 0 || e > 0.9) {
+    alert("Offset must be between 0.0 and 0.9.");
+    return false;
+  }
+
+  const startReading = getStartReadingNumber();
+  state.job.startReading = formatOneDecimal(startReading);
+
+  saveState();
+  updateSummaryHeader();
+  return true;
+}
+
+function buildCuts() {
+  const n = Number(state.job.numberOfCuts);
+  const x = Number(getCutLengthNumber());
+  const S = Number(getStartReadingNumber());
+  const direction = state.job.direction;
+  const dir = direction === "ascending" ? 1 : -1;
+
+  const existingDoneMap = new Map(
+    (state.job.cuts || []).map(cut => [cut.cutNo, !!cut.done])
+  );
+
+  const cuts = [];
+
+  for (let i = 1; i <= n; i += 1) {
+    const reading = Number((S + dir * x * i).toFixed(1));
+    const lowerMark = Math.floor(reading);
+    const upperMark = lowerMark + 1;
+    const fromLower = Number((reading - lowerMark).toFixed(1));
+    const fromUpper = Number((upperMark - reading).toFixed(1));
+
+    cuts.push({
+      cutNo: i,
+      reading: formatOneDecimal(reading),
+      lowerMark,
+      upperMark,
+      fromLower: formatOneDecimal(fromLower),
+      fromUpper: formatOneDecimal(fromUpper),
+      done: existingDoneMap.get(i) || false
+    });
+  }
+
+  state.job.cutLength = formatOneDecimal(x);
+  state.job.startReading = formatOneDecimal(S);
+  state.job.cuts = cuts;
+
+  saveState();
+}
+
+function renderResults() {
+  const cuts = state.job.cuts || [];
+
+  els.resCutLength.textContent = state.job.cutLength ? `${state.job.cutLength} m` : "-";
+
+  const doneCount = cuts.filter(cut => cut.done).length;
+  els.resDone.textContent = doneCount;
+  els.resRemaining.textContent = cuts.length - doneCount;
+
+  if (!cuts.length) {
+    els.resultsSummaryText.textContent = "No cuts generated yet.";
+    els.cutsList.innerHTML = `<p class="empty-text">No cuts generated yet.</p>`;
+    return;
+  }
+
+  els.resultsSummaryText.textContent =
+    `${cuts.length} cuts generated • Start reading S = ${state.job.startReading} m • Direction = ${capitalize(state.job.direction)}`;
+
+  els.cutsList.innerHTML = cuts
+    .map(cut => {
+      const statusClass = cut.done ? "done" : "pending";
+      const statusText = cut.done ? "DONE" : "PENDING";
+
+      return `
+        <div class="cut-card ${cut.done ? "done" : ""}">
+          <div class="cut-row-top">
+            <div>
+              <div class="cut-title">Cut ${cut.cutNo}</div>
+              <div class="cut-main-reading">${escapeHtml(cut.reading)} m</div>
+            </div>
+            <span class="badge ${statusClass}">${statusText}</span>
+          </div>
+
+          <div class="cut-grid">
+            <div class="cut-box">
+              <span class="small-label">Between full marks</span>
+              <strong>${cut.lowerMark} m and ${cut.upperMark} m</strong>
+            </div>
+            <div class="cut-box">
+              <span class="small-label">Cut length</span>
+              <strong>${escapeHtml(state.job.cutLength)} m</strong>
+            </div>
+            <div class="cut-box">
+              <span class="small-label">From lower mark</span>
+              <strong>${escapeHtml(cut.fromLower)} m from ${cut.lowerMark}</strong>
+            </div>
+            <div class="cut-box">
+              <span class="small-label">From upper mark</span>
+              <strong>${escapeHtml(cut.fromUpper)} m from ${cut.upperMark}</strong>
+            </div>
+          </div>
+
+          <div class="cut-desc">
+            Reading: ${escapeHtml(cut.reading)} m<br>
+            Display: Between ${cut.lowerMark} m and ${cut.upperMark} m • ${escapeHtml(cut.fromLower)} m from ${cut.lowerMark} • ${escapeHtml(cut.fromUpper)} m from ${cut.upperMark}
+          </div>
+
+          <div class="cut-actions">
+            <button class="btn primary small" onclick="toggleDone(${cut.cutNo})">
+              ${cut.done ? "Undo" : "Mark Done"}
+            </button>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+function toggleDone(cutNo) {
+  const cut = state.job.cuts.find(item => item.cutNo === cutNo);
+  if (!cut) return;
+
+  cut.done = !cut.done;
+  saveState();
+  renderResults();
+}
+
+window.toggleDone = toggleDone;
+
+function markAllDone() {
+  if (!state.job.cuts.length) {
+    alert("No cuts generated yet.");
+    return;
+  }
+
+  state.job.cuts = state.job.cuts.map(cut => ({
+    ...cut,
+    done: true
+  }));
+
+  saveState();
+  renderResults();
+}
+
+function clearAll() {
+  const ok = confirm("Clear the whole job and all generated cuts?");
+  if (!ok) return;
+
+  state.currentPage = 1;
+  state.job = {
+    soNumber: "",
+    operatorName: "",
+    partNumber: "",
+    trackingNumber: "",
+    totalLength: "",
+    numberOfCuts: "",
+    endMeterValue: "",
+    offsetValue: "",
+    direction: "ascending",
+    cutLength: "",
+    startReading: "",
     cuts: []
   };
 
-  saveCurrentJobToStorage();
-  updateFormFromJob();
-  renderAll();
+  localStorage.removeItem(STORAGE_KEY);
+  syncInputsFromState();
+  updateSummaryHeader();
+  updateLivePreviews();
+  renderResults();
+  showPage(1);
 }
 
-function clearAllCuts() {
-  if (currentJob.cuts.length === 0) {
-    alert("No cuts to clear.");
-    return;
-  }
-
-  const confirmed = confirm("Clear all cuts in the current job?");
-  if (!confirmed) return;
-
-  currentJob.cuts = [];
-  saveCurrentJobToStorage();
-  renderAll();
-}
-
-function renderHistory() {
-  const history = getHistory();
-  historyList.innerHTML = "";
-
-  if (history.length === 0) {
-    historyList.innerHTML = `<p class="empty-text">No history yet.</p>`;
-    return;
-  }
-
-  history.forEach(item => {
-    const totalCuts = item.cuts.length;
-    const doneCuts = item.cuts.filter(c => c.done).length;
-
-    const div = document.createElement("div");
-    div.className = "history-item";
-    div.innerHTML = `
-      <div class="history-title">SO: ${escapeHtml(item.soNumber || "-")}</div>
-      <div class="history-meta">
-        Operator: ${escapeHtml(item.operatorName || "-")}<br>
-        Saved: ${formatDateTime(item.savedAt)}<br>
-        Total Cuts: ${totalCuts}<br>
-        Done Cuts: ${doneCuts}
-      </div>
-    `;
-    historyList.appendChild(div);
-  });
-}
-
-function toggleHistoryPanel() {
-  historyPanel.classList.toggle("hidden");
-  if (!historyPanel.classList.contains("hidden")) {
-    renderHistory();
-  }
-}
-
-function clearHistory() {
-  const history = getHistory();
-  if (history.length === 0) {
-    alert("History is already empty.");
-    return;
-  }
-
-  const confirmed = confirm("Clear all local history?");
-  if (!confirmed) return;
-
-  localStorage.removeItem(STORAGE_KEY_HISTORY);
-  renderHistory();
-}
-
-function renderAll() {
-  renderSummary();
-  renderNextThree();
-  renderAllCuts();
-}
-
-function escapeHtml(str) {
-  return String(str)
+function escapeHtml(value) {
+  return String(value)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -369,14 +430,79 @@ function escapeHtml(str) {
     .replace(/'/g, "&#039;");
 }
 
-saveJobBtn.addEventListener("click", saveJobDetails);
-newJobBtn.addEventListener("click", startNewJob);
-addCutBtn.addEventListener("click", addCut);
-refresh3Btn.addEventListener("click", renderNextThree);
-clearCutsBtn.addEventListener("click", clearAllCuts);
-viewHistoryBtn.addEventListener("click", toggleHistoryPanel);
-clearHistoryBtn.addEventListener("click", clearHistory);
+function capitalize(value) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
 
-loadCurrentJobFromStorage();
-updateFormFromJob();
-renderAll();
+function attachLiveInputHandlers() {
+  [
+    els.soNumber,
+    els.operatorName,
+    els.partNumber,
+    els.trackingNumber,
+    els.totalLength,
+    els.numberOfCuts,
+    els.endMeterValue,
+    els.offsetValue
+  ].forEach(input => {
+    input.addEventListener("input", updateLivePreviews);
+  });
+
+  document.querySelectorAll('input[name="direction"]').forEach(radio => {
+    radio.addEventListener("change", updateLivePreviews);
+  });
+}
+
+function attachButtonHandlers() {
+  els.p1SaveBtn.addEventListener("click", () => {
+    if (!validatePage1()) return;
+    alert("Page 1 saved.");
+  });
+
+  els.p1NextBtn.addEventListener("click", () => {
+    if (!validatePage1()) return;
+    showPage(2);
+  });
+
+  els.p2BackBtn.addEventListener("click", () => showPage(1));
+
+  els.p2NextBtn.addEventListener("click", () => {
+    if (!validatePage2()) return;
+    updateLivePreviews();
+    showPage(3);
+  });
+
+  els.p3BackBtn.addEventListener("click", () => showPage(2));
+
+  els.generateBtn.addEventListener("click", () => {
+    if (!validatePage1() || !validatePage2() || !validatePage3()) return;
+    buildCuts();
+    renderResults();
+    showPage(4);
+  });
+
+  els.p4BackBtn.addEventListener("click", () => showPage(3));
+
+  els.regenerateBtn.addEventListener("click", () => {
+    if (!validatePage1() || !validatePage2() || !validatePage3()) return;
+    buildCuts();
+    renderResults();
+    alert("Cuts recalculated.");
+  });
+
+  els.markAllDoneBtn.addEventListener("click", markAllDone);
+  els.clearAllBtn.addEventListener("click", clearAll);
+}
+
+function init() {
+  loadState();
+  syncInputsFromState();
+  updateSummaryHeader();
+  updateLivePreviews();
+  renderResults();
+  attachLiveInputHandlers();
+  attachButtonHandlers();
+  showPage(state.currentPage || 1);
+}
+
+init();
