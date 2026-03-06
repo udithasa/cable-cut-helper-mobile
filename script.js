@@ -155,6 +155,9 @@ function updateSummaryHeader() {
 
   if (els.sumDoneHeader) els.sumDoneHeader.textContent = doneCount;
   if (els.sumRemainingHeader) els.sumRemainingHeader.textContent = remainingCount;
+  if (els.sumJobLine) {
+    els.sumJobLine.textContent = state.job.jobLineId || "-";
+  }
 }
 
 function formatOneDecimal(num) {
