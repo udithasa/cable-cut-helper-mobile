@@ -638,73 +638,89 @@ function attachLiveInputHandlers() {
 
 function attachButtonHandlers() {
   if (els.p1NextBtn) {
-    els.p1NextBtn.addEventListener("click", handlePage1NextSimple);
-  }
-  
-  if (els.createNewLineBtn) {
-    els.createNewLineBtn.addEventListener("click", createNewJobLineAndContinue);
-  }
-  
-  if (els.loadExistingBtn) {
-    els.loadExistingBtn.addEventListener("click", loadExistingJobSimple);
-  }
-  
-  if (els.closeSoModalBtn) {
-    els.closeSoModalBtn.addEventListener("click", closeSoChoiceModal);
+    els.p1NextBtn.onclick = function () {
+      if (!validatePage1()) return;
+      showPage(2);
+    };
   }
 
-  if (els.scanSoBtn) els.scanSoBtn.addEventListener("click", startScanner);
-  if (els.stopScanBtn) els.stopScanBtn.addEventListener("click", stopScanner);
+  if (els.scanSoBtn) {
+    els.scanSoBtn.onclick = startScanner;
+  }
 
-  if (els.p2BackBtn) els.p2BackBtn.addEventListener("click", () => showPage(1));
+  if (els.stopScanBtn) {
+    els.stopScanBtn.onclick = stopScanner;
+  }
+
+  if (els.p2BackBtn) {
+    els.p2BackBtn.onclick = function () {
+      showPage(1);
+    };
+  }
 
   if (els.p2NextBtn) {
-    els.p2NextBtn.addEventListener("click", () => {
+    els.p2NextBtn.onclick = function () {
       if (!validatePage2()) return;
       updateLivePreviews();
       showPage(3);
-    });
+    };
   }
 
-  if (els.p3BackBtn) els.p3BackBtn.addEventListener("click", () => showPage(2));
+  if (els.p3BackBtn) {
+    els.p3BackBtn.onclick = function () {
+      showPage(2);
+    };
+  }
 
   if (els.generateBtn) {
-    els.generateBtn.addEventListener("click", () => {
+    els.generateBtn.onclick = function () {
       if (!validatePage1() || !validatePage2() || !validatePage3()) return;
       buildCuts();
       renderResults();
       showPage(4);
-    });
+    };
   }
 
-  if (els.p4BackBtn) els.p4BackBtn.addEventListener("click", () => showPage(3));
+  if (els.p4BackBtn) {
+    els.p4BackBtn.onclick = function () {
+      showPage(3);
+    };
+  }
 
   if (els.regenerateBtn) {
-    els.regenerateBtn.addEventListener("click", () => {
+    els.regenerateBtn.onclick = function () {
       if (!validatePage1() || !validatePage2() || !validatePage3()) return;
       buildCuts();
       renderResults();
       alert("Cuts recalculated.");
-    });
+    };
   }
 
   if (els.nextPendingBtn) {
-    els.nextPendingBtn.addEventListener("click", jumpToNextPending);
+    els.nextPendingBtn.onclick = jumpToNextPending;
   }
 
-  if (els.markAllDoneBtn) els.markAllDoneBtn.addEventListener("click", markAllDone);
+  if (els.markAllDoneBtn) {
+    els.markAllDoneBtn.onclick = markAllDone;
+  }
 
-  if (els.p5BackBtn) els.p5BackBtn.addEventListener("click", () => showPage(4));
+  if (els.p5BackBtn) {
+    els.p5BackBtn.onclick = function () {
+      showPage(4);
+    };
+  }
 
   if (els.startNewJobBtn) {
-    els.startNewJobBtn.addEventListener("click", () => {
+    els.startNewJobBtn.onclick = function () {
       const ok = confirm("Start a new job?");
       if (!ok) return;
       resetWholeJob();
-    });
+    };
   }
 
-  if (els.clearAllBtn) els.clearAllBtn.addEventListener("click", clearAll);
+  if (els.clearAllBtn) {
+    els.clearAllBtn.onclick = clearAll;
+  }
 }
 
 const STORAGE_KEY_JOB_LINES = "cableCutHelperJobLines";
