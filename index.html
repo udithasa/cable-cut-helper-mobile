@@ -46,13 +46,23 @@
       <section id="page1" class="page active">
         <div class="card">
           <h2>Page 1 — Job Details</h2>
-
+      
           <label for="soNumber">SO Number</label>
-          <input id="soNumber" type="text" placeholder="Enter SO number" />
-
+          <input id="soNumber" type="text" placeholder="Enter or scan SO number" />
+      
+          <div class="scan-row">
+            <button id="scanSoBtn" class="btn secondary">Scan SO</button>
+            <button id="stopScanBtn" class="btn danger" style="display:none;">Stop Scan</button>
+          </div>
+      
+          <div id="scannerWrap" class="scanner-wrap hidden">
+            <div id="reader"></div>
+            <p class="scanner-help">Point the camera at the SO barcode.</p>
+          </div>
+      
           <label for="operatorName">Operator Name</label>
           <input id="operatorName" type="text" placeholder="Enter operator name" />
-
+      
           <div class="nav-row">
             <button id="p1NextBtn" class="btn primary">Next</button>
           </div>
@@ -235,7 +245,8 @@
       </section>
     </main>
   </div>
-
+  
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script src="script.js"></script>
 </body>
 </html>
