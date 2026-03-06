@@ -462,13 +462,23 @@ function toggleDone(cutNo) {
   if (!cut) return;
 
   cut.done = !cut.done;
+
   saveState();
   renderResults();
+  updateSummaryHeader();
 
+  // if last cut finished → open summary page
   if (allCutsDone()) {
-    goToFinalSummaryIfComplete();
+    setTimeout(() => {
+      renderFinalSummary();
+      showPage(5);
+    }, 400);
     return;
   }
+
+  const nextPendingCutNo = getNextPendingCutNo();
+  scrollToCut(nextPendingCutNo);
+}
 
   const nextPendingCutNo = getNextPendingCutNo();
   scrollToCut(nextPendingCutNo);
