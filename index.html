@@ -1,1 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cable Cut Helper Mobile</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <h1>Cable Cut Helper</h1>
+      <p class="subtitle">Mobile Development Version</p>
+    </header>
 
+    <main class="container">
+      <!-- Job Details -->
+      <section class="card">
+        <h2>Job Details</h2>
+
+        <label for="soNumber">SO Number</label>
+        <input type="text" id="soNumber" placeholder="Enter SO number" />
+
+        <label for="operatorName">Operator Name</label>
+        <input type="text" id="operatorName" placeholder="Enter operator name" />
+
+        <div class="button-row">
+          <button id="saveJobBtn" class="primary-btn">Save Job</button>
+          <button id="newJobBtn" class="secondary-btn">New Job</button>
+        </div>
+      </section>
+
+      <!-- Add Cut -->
+      <section class="card">
+        <h2>Add Cut</h2>
+
+        <label for="partNumber">Part Number</label>
+        <input type="text" id="partNumber" placeholder="Enter part number" />
+
+        <label for="length">Length</label>
+        <input type="text" id="length" placeholder="Enter cut length" />
+
+        <label for="qty">Quantity</label>
+        <input type="number" id="qty" min="1" value="1" />
+
+        <button id="addCutBtn" class="primary-btn full-width">Add Cut</button>
+      </section>
+
+      <!-- Job Summary -->
+      <section class="card">
+        <h2>Job Summary</h2>
+        <div class="summary-grid">
+          <div class="summary-box">
+            <span class="summary-label">Total Cuts</span>
+            <span id="totalCuts" class="summary-value">0</span>
+          </div>
+          <div class="summary-box">
+            <span class="summary-label">Done</span>
+            <span id="doneCuts" class="summary-value">0</span>
+          </div>
+          <div class="summary-box">
+            <span class="summary-label">Remaining</span>
+            <span id="remainingCuts" class="summary-value">0</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Next 3 Cuts -->
+      <section class="card">
+        <div class="section-header">
+          <h2>Next 3 Cuts</h2>
+          <button id="refresh3Btn" class="secondary-btn small-btn">Refresh</button>
+        </div>
+
+        <div id="nextThreeList" class="list-stack">
+          <p class="empty-text">No cuts added yet.</p>
+        </div>
+      </section>
+
+      <!-- All Cuts -->
+      <section class="card">
+        <div class="section-header">
+          <h2>All Cuts</h2>
+          <button id="clearCutsBtn" class="danger-btn small-btn">Clear Cuts</button>
+        </div>
+
+        <div id="allCutsList" class="list-stack">
+          <p class="empty-text">No cuts added yet.</p>
+        </div>
+      </section>
+
+      <!-- History -->
+      <section class="card">
+        <div class="section-header">
+          <h2>Local History</h2>
+          <div class="button-row compact">
+            <button id="viewHistoryBtn" class="secondary-btn small-btn">View</button>
+            <button id="clearHistoryBtn" class="danger-btn small-btn">Clear</button>
+          </div>
+        </div>
+
+        <div id="historyPanel" class="history-panel hidden">
+          <div id="historyList" class="list-stack">
+            <p class="empty-text">No history yet.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
