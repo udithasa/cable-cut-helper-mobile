@@ -5,6 +5,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cable Cut Helper Mobile</title>
   <link rel="stylesheet" href="style.css" />
+<style>
+  .simple-modal.hidden {
+    display: none;
+  }
+
+  .simple-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 9999;
+  }
+
+  .simple-modal-box {
+    width: 100%;
+    max-width: 420px;
+    background: #111827;
+    border: 1px solid #334155;
+    border-radius: 16px;
+    padding: 16px;
+    color: white;
+  }
+
+  .simple-modal-box h3 {
+    margin-top: 0;
+  }
+
+  .simple-modal-box p {
+    color: #cbd5e1;
+  }
+</style>
+  
 </head>
 <body>
   <div class="app-shell">
@@ -229,6 +264,22 @@
         </div>
       </section>
     </main>
+  </div>
+  
+  <div id="soChoiceModal" class="simple-modal hidden">
+  <div class="simple-modal-box">
+      <h3>Existing SO Found</h3>
+      <p id="soChoiceText">This SO already has saved job lines.</p>
+  
+      <div class="nav-row">
+        <button id="createNewLineBtn" class="btn primary">Create New Job Line</button>
+        <button id="loadExistingBtn" class="btn secondary">Load Existing</button>
+      </div>
+  
+      <div class="nav-row">
+        <button id="closeSoModalBtn" class="btn danger">Cancel</button>
+      </div>
+    </div>
   </div>
   
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
