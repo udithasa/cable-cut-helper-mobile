@@ -668,3 +668,19 @@ select:focus {
 .job-line-item:hover {
   background: #334155;
 }
+
+.top-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.top-actions button {
+  flex: 1;
+}
+
+@media (max-width: 640px) {
+  .top-actions {
+    width: 100%;
+  }
+}
