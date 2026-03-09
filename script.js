@@ -536,6 +536,8 @@ function resetWholeJob() {
   state.currentPage = 1;
   state.job = {
     soNumber: "",
+    jobLineId: "",
+    lineNumber: 0,
     operatorName: "",
     partNumber: "",
     trackingNumber: "",
