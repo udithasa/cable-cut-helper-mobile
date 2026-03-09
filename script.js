@@ -85,7 +85,12 @@ const els = {
   p5BackBtn: document.getElementById("p5BackBtn"),
   startNewJobBtn: document.getElementById("startNewJobBtn"),
   clearAllBtn: document.getElementById("clearAllBtn"),
+
   newJobBtn: document.getElementById("newJobBtn"),
+  newJobModal: document.getElementById("newJobModal"),
+  saveAndNewBtn: document.getElementById("saveAndNewBtn"),
+  newWithoutSaveBtn: document.getElementById("newWithoutSaveBtn"),
+  closeNewJobModalBtn: document.getElementById("closeNewJobModalBtn"),
 
   soChoiceModal: document.getElementById("soChoiceModal"),
   soChoiceText: document.getElementById("soChoiceText"),
@@ -638,6 +643,27 @@ function attachLiveInputHandlers() {
   });
 }
 
+function openNewJobModal() {
+  if (!els.newJobModal) return;
+  els.newJobModal.classList.remove("hidden");
+}
+
+function closeNewJobModal() {
+  if (!els.newJobModal) return;
+  els.newJobModal.classList.add("hidden");
+}
+
+function saveCurrentAndStartNew() {
+  saveCurrentJobLine();
+  closeNewJobModal();
+  resetWholeJob();
+}
+
+function startNewWithoutSaving() {
+  closeNewJobModal();
+  resetWholeJob();
+}
+
 function attachButtonHandlers() {
   if (els.p1NextBtn) {
     els.p1NextBtn.onclick = handlePage1NextSimple;
@@ -733,7 +759,19 @@ function attachButtonHandlers() {
     els.clearAllBtn.onclick = clearAll;
   }
   if (els.newJobBtn) {
-    els.newJobBtn.onclick = startNewJobFlow;
+    els.newJobBtn.onclick = openNewJobModal;
+  }
+  
+  if (els.saveAndNewBtn) {
+    els.saveAndNewBtn.onclick = saveCurrentAndStartNew;
+  }
+  
+  if (els.newWithoutSaveBtn) {
+    els.newWithoutSaveBtn.onclick = startNewWithoutSaving;
+  }
+  
+  if (els.closeNewJobModalBtn) {
+    els.closeNewJobModalBtn.onclick = closeNewJobModal;
   }
 }
 
