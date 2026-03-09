@@ -808,6 +808,7 @@ function createNewJobLineAndContinue() {
 
   state.job.jobLineId = next.jobLineId;
   state.job.lineNumber = next.lineNumber;
+  updateSummaryHeader();
   state.job.operatorName = operatorName;
   state.job.partNumber = "";
   state.job.trackingNumber = "";
@@ -822,6 +823,7 @@ function createNewJobLineAndContinue() {
 
   saveState();
   saveCurrentJobLine();
+  updateSummaryHeader();
   closeSoChoiceModal();
   showPage(2);
 }
