@@ -85,6 +85,7 @@ const els = {
   p5BackBtn: document.getElementById("p5BackBtn"),
   startNewJobBtn: document.getElementById("startNewJobBtn"),
   clearAllBtn: document.getElementById("clearAllBtn"),
+  newJobBtn: document.getElementById("newJobBtn"),
 
   soChoiceModal: document.getElementById("soChoiceModal"),
   soChoiceText: document.getElementById("soChoiceText"),
@@ -731,6 +732,9 @@ function attachButtonHandlers() {
   if (els.clearAllBtn) {
     els.clearAllBtn.onclick = clearAll;
   }
+  if (els.newJobBtn) {
+    els.newJobBtn.onclick = startNewJobFlow;
+  }
 }
 
 const STORAGE_KEY_JOB_LINES = "cableCutHelperJobLines";
@@ -878,6 +882,25 @@ function handlePage1NextSimple() {
   }
 
   openSoChoiceModal(soNumber);
+}
+
+function startNewJobFlow() {
+  const choice = prompt(
+    "Type 1 to save current job and start new.\nType 2 to start new without saving.\nType 3 to cancel."
+  );
+
+  if (choice === "1") {
+    saveCurrentJobLine();
+    resetWholeJob();
+    return;
+  }
+
+  if (choice === "2") {
+    resetWholeJob();
+    return;
+  }
+
+  return;
 }
 
 function init() {
