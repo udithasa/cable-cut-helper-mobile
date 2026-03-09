@@ -398,6 +398,7 @@ function renderResults() {
 
   const cuts = state.job.cuts || [];
   const nextPendingCutNo = getNextPendingCutNo();
+  const isDescending = state.job.direction === "descending";
 
   if (!cuts.length) {
     els.resultsSummaryText.textContent = "No cuts generated yet.";
@@ -415,6 +416,18 @@ function renderResults() {
       const statusText = cut.done ? "DONE" : "PENDING";
       const isNextPending = cut.cutNo === nextPendingCutNo && !cut.done;
 
+      const betweenText = isDescending
+        ? `Between ${cut.upperMark} m and ${cut.lowerMark} m`
+        : `Between ${cut.lowerMark} m and ${cut.upperMark} m`;
+
+      const firstFromText = isDescending
+        ? `${escapeHtml(cut.fromUpper)} m from ${cut.upperMark}`
+        : `${escapeHtml(cut.fromLower)} m from ${cut.lowerMark}`;
+
+      const secondFromText = isDescending
+        ? `${escapeHtml(cut.fromLower)} m from ${cut.lowerMark}`
+        : `${escapeHtml(cut.fromUpper)} m from ${cut.upperMark}`;
+
       return `
         <div class="compact-cut-card ${cut.done ? "done" : ""} ${isNextPending ? "next-pending" : ""}" id="cut-card-${cut.cutNo}">
           <div class="compact-cut-line1">
@@ -426,10 +439,17 @@ function renderResults() {
           </div>
 
           <div class="compact-cut-line2">
-            <span>${cut.lowerMark}-${cut.upperMark} m</span>
-            <span>L:${escapeHtml(cut.fromLower)}</span>
-            <span>U:${escapeHtml(cut.fromUpper)}</span>
-            <span>X:${escapeHtml(state.job.cutLength)}</span>
+            <span>${betweenText}</span>
+          </div>
+
+          <div class="compact-cut-line2">
+            <span>${firstFromText}</span>
+            <span>|</span>
+            <span>${secondFromText}</span>
+          </div>
+
+          <div class="compact-cut-line2">
+            <span>Cut length: ${escapeHtml(state.job.cutLength)} m</span>
           </div>
 
           <div class="compact-cut-actions">
