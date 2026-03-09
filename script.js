@@ -22,6 +22,7 @@ const state = {
 
 let html5QrCode = null;
 let scannerRunning = false;
+let selectedExistingJob = null;
 
 const els = {
   soNumber: document.getElementById("soNumber"),
@@ -100,6 +101,19 @@ const els = {
   closeSoModalBtn: document.getElementById("closeSoModalBtn"),
 
   jobLineList: document.getElementById("jobLineList"),
+
+  existingActionModal: document.getElementById("existingActionModal"),
+  existingActionTitle: document.getElementById("existingActionTitle"),
+  continueExistingBtn: document.getElementById("continueExistingBtn"),
+  recalculateRemainingBtn: document.getElementById("recalculateRemainingBtn"),
+  closeExistingActionModalBtn: document.getElementById("closeExistingActionModalBtn"),
+  
+  recalcModal: document.getElementById("recalcModal"),
+  recalcTrackingNumber: document.getElementById("recalcTrackingNumber"),
+  recalcEndMeterValue: document.getElementById("recalcEndMeterValue"),
+  recalcOffsetValue: document.getElementById("recalcOffsetValue"),
+  confirmRecalcBtn: document.getElementById("confirmRecalcBtn"),
+  closeRecalcModalBtn: document.getElementById("closeRecalcModalBtn"),
 };
 
 function saveState() {
@@ -665,6 +679,146 @@ function startNewWithoutSaving() {
   resetWholeJob();
 }
 
+function openExistingActionModal(jobLineId) {
+  if (!els.existingActionModal) return;
+
+  if (els.existingActionTitle) {
+    els.existingActionTitle.textContent = `Selected Job Line: ${jobLineId}`;
+  }
+
+  els.existingActionModal.classList.remove("hidden");
+}
+
+function closeExistingActionModal() {
+  if (!els.existingActionModal) return;
+  els.existingActionModal.classList.add("hidden");
+}
+
+function continueExistingSelectedJob() {
+  if (!selectedExistingJob) return;
+
+  state.job = JSON.parse(JSON.stringify(selectedExistingJob));
+
+  saveState();
+  syncInputsFromState();
+  updateSummaryHeader();
+  renderResults();
+  renderFinalSummary();
+  closeExistingActionModal();
+
+  if (state.job.cuts && state.job.cuts.length) {
+    showPage(4);
+  } else {
+    showPage(2);
+  }
+}
+
+function openRecalcModal() {
+  if (!selectedExistingJob || !els.recalcModal) return;
+
+  if (els.recalcTrackingNumber) {
+    els.recalcTrackingNumber.value = selectedExistingJob.trackingNumber || "";
+  }
+
+  if (els.recalcEndMeterValue) {
+    els.recalcEndMeterValue.value = selectedExistingJob.endMeterValue || "";
+  }
+
+  if (els.recalcOffsetValue) {
+    els.recalcOffsetValue.value = selectedExistingJob.offsetValue || "";
+  }
+
+  const recalcDirection = selectedExistingJob.direction || "ascending";
+  document.querySelectorAll('input[name="recalcDirection"]').forEach(radio => {
+    radio.checked = radio.value === recalcDirection;
+  });
+
+  closeExistingActionModal();
+  els.recalcModal.classList.remove("hidden");
+}
+
+function closeRecalcModal() {
+  if (!els.recalcModal) return;
+  els.recalcModal.classList.add("hidden");
+}
+
+function recalculateRemainingCuts() {
+  if (!selectedExistingJob) return;
+
+  const newTrackingNumber = els.recalcTrackingNumber.value.trim();
+  const newEndMeterValue = Number(els.recalcEndMeterValue.value);
+  const newOffsetValue = Number(els.recalcOffsetValue.value);
+  const selectedDirection = document.querySelector('input[name="recalcDirection"]:checked');
+  const newDirection = selectedDirection ? selectedDirection.value : "ascending";
+
+  const allCuts = selectedExistingJob.cuts || [];
+  const doneCuts = allCuts.filter(cut => cut.done);
+  const pendingCuts = allCuts.filter(cut => !cut.done);
+
+  if (!pendingCuts.length) {
+    alert("No remaining cuts to recalculate.");
+    return;
+  }
+
+  const x = Number(selectedExistingJob.cutLength);
+
+  if (!Number.isFinite(x) || x <= 0) {
+    alert("Invalid cut length.");
+    return;
+  }
+
+  if (!Number.isFinite(newEndMeterValue)) {
+    alert("Please enter a valid new end meter value.");
+    return;
+  }
+
+  if (!Number.isFinite(newOffsetValue) || newOffsetValue < 0 || newOffsetValue > 0.9) {
+    alert("Please select a valid offset.");
+    return;
+  }
+
+  const dir = newDirection === "ascending" ? 1 : -1;
+  const startReading =
+    newDirection === "ascending"
+      ? Number((newEndMeterValue - newOffsetValue).toFixed(1))
+      : Number((newEndMeterValue + newOffsetValue).toFixed(1));
+
+  const rebuiltPending = pendingCuts.map((cut, index) => {
+    const reading = Number((startReading + dir * x * (index + 1)).toFixed(1));
+    const lowerMark = Math.floor(reading);
+    const upperMark = lowerMark + 1;
+    const fromLower = Number((reading - lowerMark).toFixed(1));
+    const fromUpper = Number((upperMark - reading).toFixed(1));
+
+    return {
+      ...cut,
+      reading: reading.toFixed(1),
+      lowerMark,
+      upperMark,
+      fromLower: fromLower.toFixed(1),
+      fromUpper: fromUpper.toFixed(1)
+    };
+  });
+
+  selectedExistingJob.trackingNumber = newTrackingNumber;
+  selectedExistingJob.endMeterValue = String(newEndMeterValue);
+  selectedExistingJob.offsetValue = String(newOffsetValue);
+  selectedExistingJob.direction = newDirection;
+  selectedExistingJob.startReading = startReading.toFixed(1);
+  selectedExistingJob.cuts = [...doneCuts, ...rebuiltPending].sort((a, b) => a.cutNo - b.cutNo);
+
+  state.job = JSON.parse(JSON.stringify(selectedExistingJob));
+
+  saveState();
+  saveCurrentJobLine();
+  syncInputsFromState();
+  updateSummaryHeader();
+  renderResults();
+  renderFinalSummary();
+  closeRecalcModal();
+  showPage(4);
+}
+
 function attachButtonHandlers() {
   if (els.p1NextBtn) {
     els.p1NextBtn.onclick = handlePage1NextSimple;
@@ -773,6 +927,25 @@ function attachButtonHandlers() {
   
   if (els.closeNewJobModalBtn) {
     els.closeNewJobModalBtn.onclick = closeNewJobModal;
+  }
+  if (els.continueExistingBtn) {
+    els.continueExistingBtn.onclick = continueExistingSelectedJob;
+  }
+  
+  if (els.recalculateRemainingBtn) {
+    els.recalculateRemainingBtn.onclick = openRecalcModal;
+  }
+  
+  if (els.closeExistingActionModalBtn) {
+    els.closeExistingActionModalBtn.onclick = closeExistingActionModal;
+  }
+  
+  if (els.confirmRecalcBtn) {
+    els.confirmRecalcBtn.onclick = recalculateRemainingCuts;
+  }
+  
+  if (els.closeRecalcModalBtn) {
+    els.closeRecalcModalBtn.onclick = closeRecalcModal;
   }
 }
 
@@ -890,19 +1063,9 @@ function loadExistingJobSimple() {
     div.textContent = job.jobLineId;
 
     div.onclick = () => {
-      state.job = JSON.parse(JSON.stringify(job));
-
-      saveState();
+      selectedExistingJob = JSON.parse(JSON.stringify(job));
       closeSoChoiceModal();
-      syncInputsFromState();
-      updateSummaryHeader();
-
-      if (state.job.cuts && state.job.cuts.length) {
-        renderResults();
-        showPage(4);
-      } else {
-        showPage(2);
-      }
+      openExistingActionModal(job.jobLineId);
     };
 
     els.jobLineList.appendChild(div);
