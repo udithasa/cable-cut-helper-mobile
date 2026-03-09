@@ -40,6 +40,7 @@ const els = {
   sumSo: document.getElementById("sumSo"),
   sumDoneHeader: document.getElementById("sumDoneHeader"),
   sumRemainingHeader: document.getElementById("sumRemainingHeader"),
+  sumJobLine: document.getElementById("sumJobLine"),
 
   cutLengthPreview: document.getElementById("cutLengthPreview"),
   startReadingPreview: document.getElementById("startReadingPreview"),
