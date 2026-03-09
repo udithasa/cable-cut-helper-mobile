@@ -91,6 +91,8 @@ const els = {
   createNewLineBtn: document.getElementById("createNewLineBtn"),
   loadExistingBtn: document.getElementById("loadExistingBtn"),
   closeSoModalBtn: document.getElementById("closeSoModalBtn"),
+
+  jobLineList: document.getElementById("jobLineList"),
 };
 
 function saveState() {
@@ -833,36 +835,33 @@ function loadExistingJobSimple() {
     return;
   }
 
-  let message = "Select a job line:\n\n";
+  if (!els.jobLineList) return;
+
+  els.jobLineList.innerHTML = "";
 
   existing.forEach(job => {
-    message += job.jobLineId + "\n";
+    const div = document.createElement("div");
+    div.className = "job-line-item";
+    div.textContent = job.jobLineId;
+
+    div.onclick = () => {
+      state.job = JSON.parse(JSON.stringify(job));
+
+      saveState();
+      closeSoChoiceModal();
+      syncInputsFromState();
+      updateSummaryHeader();
+
+      if (state.job.cuts && state.job.cuts.length) {
+        renderResults();
+        showPage(4);
+      } else {
+        showPage(2);
+      }
+    };
+
+    els.jobLineList.appendChild(div);
   });
-
-  const selected = prompt(message + "\nType the job line ID exactly:");
-
-  if (!selected) return;
-
-  const job = existing.find(j => j.jobLineId === selected.trim());
-
-  if (!job) {
-    alert("Job line not found.");
-    return;
-  }
-
-  state.job = JSON.parse(JSON.stringify(job));
-
-  saveState();
-  closeSoChoiceModal();
-  syncInputsFromState();
-  updateSummaryHeader();
-
-  if (state.job.cuts && state.job.cuts.length) {
-    renderResults();
-    showPage(4);
-  } else {
-    showPage(2);
-  }
 }
 
 function handlePage1NextSimple() {
